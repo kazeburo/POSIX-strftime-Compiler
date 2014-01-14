@@ -55,13 +55,13 @@
    "release_status" : "unstable",
    "resources" : {
       "bugtracker" : {
-         "web" : "https://github.com/kazeburo/Time-Format-Compiler/issues"
+         "web" : "https://github.com/kazeburo/POSIX-strftime-Compiler/issues"
       },
-      "homepage" : "https://github.com/kazeburo/Time-Format-Compiler",
+      "homepage" : "https://github.com/kazeburo/POSIX-strftime-Compiler",
       "repository" : {
          "type" : "git",
-         "url" : "git://github.com/kazeburo/Time-Format-Compiler.git",
-         "web" : "https://github.com/kazeburo/Time-Format-Compiler"
+         "url" : "git://github.com/kazeburo/POSIX-strftime-Compiler.git",
+         "web" : "https://github.com/kazeburo/POSIX-strftime-Compiler"
       }
    },
    "version" : "0.01"
