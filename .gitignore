@@ -24,4 +24,4 @@ cover_db/
 
 MYMETA.*
 
-/Time-Format-Compiler-*
+/POSIX-strftime-Compiler-*

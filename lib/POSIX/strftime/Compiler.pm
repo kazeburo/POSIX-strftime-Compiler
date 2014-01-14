@@ -1,4 +1,4 @@
-package Time::Format::Compiler;
+package POSIX::strftime::Compiler;
 
 use 5.008004;
 use strict;
@@ -306,7 +306,7 @@ sub compile {
     $fmt = q~sub {
         my $this = shift;
         @_ = localtime unless @_;
-        Carp::croak 'Usage: display(sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)'
+        Carp::croak 'Usage: to_string(sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)'
             if @_ != 9 and @_ != 6;
         @_ = localtime(Time::Local::timelocal(@_)) if @_ == 6;
         if ( ! exists $this->{tzoffset} || ! exists $this->{isdst_cache} || $_[ISDST] ne $this->{isdst_cache} ) {
@@ -333,15 +333,15 @@ __END__
 
 =head1 NAME
 
-Time::Format::Compiler - It's new $module
+POSIX::strftime::Compiler - It's new $module
 
 =head1 SYNOPSIS
 
-    use Time::Format::Compiler;
+    use POSIX::strftime::Compiler;
 
 =head1 DESCRIPTION
 
-Time::Format::Compiler is ...
+POSIX::strftime::Compiler is ...
 
 =head1 LICENSE
 

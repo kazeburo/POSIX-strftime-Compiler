@@ -12,7 +12,7 @@
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
       "version" : "2"
    },
-   "name" : "Time-Format-Compiler",
+   "name" : "POSIX-strftime-Compiler",
    "no_index" : {
       "directory" : [
          "t",
@@ -53,5 +53,16 @@
       }
    },
    "release_status" : "unstable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/kazeburo/Time-Format-Compiler/issues"
+      },
+      "homepage" : "https://github.com/kazeburo/Time-Format-Compiler",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/kazeburo/Time-Format-Compiler.git",
+         "web" : "https://github.com/kazeburo/Time-Format-Compiler"
+      }
+   },
    "version" : "0.01"
 }

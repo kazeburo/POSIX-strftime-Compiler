@@ -10,7 +10,7 @@ BEGIN {
 }
 
 use Test::More;
-use Time::Format::Compiler;
+use POSIX::strftime::Compiler;
 use Time::Local;
 
 my %format = (
@@ -79,10 +79,10 @@ $t[0] += 0.123456;
 
 foreach my $f (sort keys %format) {
     if ( ref $format{$f} ) {
-        like( Time::Format::Compiler->new('%'.$f)->to_string(@t), $format{$f}, '%'.$f);
+        like( POSIX::strftime::Compiler->new('%'.$f)->to_string(@t), $format{$f}, '%'.$f);
     }
     else {
-        is( Time::Format::Compiler->new('%'.$f)->to_string(@t), $format{$f}, '%'.$f);
+        is( POSIX::strftime::Compiler->new('%'.$f)->to_string(@t), $format{$f}, '%'.$f);
     }
 }
 done_testing();

@@ -2,7 +2,7 @@ use strict;
 use Test::More;
 
 use_ok $_ for qw(
-    Time::Format::Compiler
+    POSIX::strftime::Compiler
 );
 
 done_testing;

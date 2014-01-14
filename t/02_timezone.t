@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
-use Time::Format::Compiler;
+use POSIX::strftime::Compiler;
 
 use File::Basename;
 

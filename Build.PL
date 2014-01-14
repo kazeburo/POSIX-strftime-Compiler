@@ -23,8 +23,8 @@ my %args = (
         'Module::Build' => 0.38,
     },
 
-    name            => 'Time-Format-Compiler',
-    module_name     => 'Time::Format::Compiler',
+    name            => 'POSIX-strftime-Compiler',
+    module_name     => 'POSIX::strftime::Compiler',
     allow_pureperl => 0,
 
     script_files => [glob('script/*'), glob('bin/*')],

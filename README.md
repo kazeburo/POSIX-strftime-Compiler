@@ -1,14 +1,14 @@
 # NAME
 
-Time::Format::Compiler - It's new $module
+POSIX::strftime::Compiler - It's new $module
 
 # SYNOPSIS
 
-    use Time::Format::Compiler;
+    use POSIX::strftime::Compiler;
 
 # DESCRIPTION
 
-Time::Format::Compiler is ...
+POSIX::strftime::Compiler is ...
 
 # LICENSE
 
