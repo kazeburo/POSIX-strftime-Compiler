@@ -240,8 +240,6 @@ It's useful for logging and servers.
 - [POSIX](http://search.cpan.org/perldoc?POSIX)
 - [Apache::LogFormat::Compiler](http://search.cpan.org/perldoc?Apache::LogFormat::Compiler)
 
-
-
 # LICENSE
 
 Copyright (C) Masahiro Nagano.

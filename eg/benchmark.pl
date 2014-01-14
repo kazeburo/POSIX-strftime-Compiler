@@ -3,8 +3,9 @@ use POSIX qw/strftime/;
 use POSIX::strftime::Compiler;
 use HTTP::Date qw//;
 
-my $fmt = '%a, %d %b %Y %T %z';
+my $fmt = '%d/%b/%Y:%T %z';
 my $compiler = POSIX::strftime::Compiler->new($fmt);
+my @abbr = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
 
 cmpthese(timethese(-1, {
     'compiler' => sub {
@@ -22,6 +23,13 @@ cmpthese(timethese(-1, {
 #    },
     'http_date' => sub {
         HTTP::Date::time2str();
+    },
+    'sprintf' => sub {
+        my @lt = localtime();        
+        my $tz = '+0900';
+        sprintf '%02d/%s/%04d:%02d:%02d:%02d %s', $lt[3], $abbr[$lt[4]], $lt[5]+1900, 
+          $lt[2], $lt[1], $lt[0], $tz;
+
     },
 }));
 

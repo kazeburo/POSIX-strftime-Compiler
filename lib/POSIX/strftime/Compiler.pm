@@ -220,7 +220,7 @@ our %rules = (
     'A' => [q!%s!, q!$weekday_name[$_[WDAY]]!],
     'b' => [q!%s!, q!$month_abbr[$_[MONTH]]!],
     'B' => [q!%s!, q!$month_name[$_[MONTH]]!],
-    'c' => [q!%s %s % 2d %02d:%02d:%02d %04d!, q!$weekday_abbr[$_[WDAY]], $month_abbr[$_[MONTH]], $_[DAY], $_[HOUR], $_[MIN], $_[SEC], $_[YEAR]+1900!],
+    'c' => [q!%s %s %2d %02d:%02d:%02d %04d!, q!$weekday_abbr[$_[WDAY]], $month_abbr[$_[MONTH]], $_[DAY], $_[HOUR], $_[MIN], $_[SEC], $_[YEAR]+1900!],
     'C' => [q!%02d!, q!($_[YEAR]+1900)/100!],
     'd' => [q!%02d!, q!$_[DAY]!],
     'D' => [q!%02d/%02d/%02d!, q!$_[MONTH]+1,$_[DAY],$_[YEAR]%100!],
@@ -287,7 +287,6 @@ sub new {
 sub compile {
     my $self = shift;
     my $fmt = $self->{fmt};
-    $self->{_require_posix} = 0;
     $self->{_args} = [];
     my $rule_chars = join "", keys %rules;
     $fmt =~ s!\%E([cCxXyY])!%$1!g;
@@ -298,14 +297,13 @@ sub compile {
         )
     ! $char_handler->($self, $1) !egx;
     my $args = delete $self->{_args};
-    my $require_posix = delete $self->{_require_posix};
     my @weekday_name = qw( Sunday Monday Tuesday Wednesday Thursday Friday Saturday);
     my @weekday_abbr = qw( Sun Mon Tue Wed Thu Fri Sat );
     my @month_name = qw( January February March April May June July August September October November December );
     my @month_abbr = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
     $fmt = q~sub {
         my $this = shift;
-        @_ = localtime unless @_;
+        @_ = localtime if @_ == 0;
         Carp::croak 'Usage: to_string(sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)'
             if @_ != 9 and @_ != 6;
         @_ = localtime(Time::Local::timelocal(@_)) if @_ == 6;
@@ -314,7 +312,7 @@ sub compile {
             $this->{tzoffset} = tzoffset(0, @_);
             $this->{tzname} = tzname(@_);
         }
-        sprintf q!~ . $fmt .  q~!,~ . join(",\n", @$args) . q~;
+        sprintf q!~ . $fmt .  q~!,~ . join(",", @$args) . q~;
     }~;
     $self->{_code} = $fmt;
     my $handler = eval $fmt; ## no critic    
