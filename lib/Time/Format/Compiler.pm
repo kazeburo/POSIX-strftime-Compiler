@@ -9,11 +9,22 @@ use POSIX qw//;
 
 our $VERSION = "0.01";
 
+use constant {
+    SEC => 0,
+    MIN => 1,
+    HOUR => 2,
+    DAY => 3,
+    MONTH => 4,
+    YEAR => 5,
+    WDAY => 6,
+    YDAY => 7,
+    ISDST => 8
+};
+
 our %formats = (
     'rfc2822' => '%a, %d %b %Y %T %z',
     'rfc822' => '%a, %d %b %y %T %z',
 );
-
 
 # copy from POSIX/strftime/GNU/PP.pm
 my @offset2zone = qw(
@@ -92,7 +103,6 @@ sub tzoffset {
     my $diff = (exists $ENV{TZ} and $ENV{TZ} eq 'GMT')
              ? 0
              : Time::Local::timegm(@t) - Time::Local::timelocal(@t);
-
     my $h = $diff / 60 / 60;
     my $m = $diff / 60 % 60;
     my $s = $diff % 60;
@@ -146,44 +156,44 @@ sub tzname {
 
 our %rules = (
     '%' => [q!%s!, q!%!],
-    'a' => [q!%s!, q!$weekday_abbr[$weekday-1]!],
-    'A' => [q!%s!, q!$weekday_name[$weekday-1]!],
-    'b' => [q!%s!, q!$month_abbr[$month-1]!],
-    'B' => [q!%s!, q!$month_name[$month-1]!],
-    'c' => [q!%s %s % 2d %02d:%02d:%02d %04d!, q!$weekday_abbr[$weekday-1], $month_abbr[$month-1], $day, $hour, $minute, $second, $year!],
-    'C' => [q!%d!, q!$year%100!],
-    'd' => [q!%02d!, q!$day!],
-    'D' => [q!%02d/%02d/%02d!, q!$month,$day,$year%100!],
-    'e' => [q!%d!, q!$day!],
-    'F' => [q!%04d-%02d-%02d!, q!$year,$month,$day!],
+    'a' => [q!%s!, q!$weekday_abbr[$_[WDAY]-1]!],
+    'A' => [q!%s!, q!$weekday_name[$_[WDAY]-1]!],
+    'b' => [q!%s!, q!$month_abbr[$_[MONTH]]!],
+    'B' => [q!%s!, q!$month_name[$_[MONTH]]!],
+    'c' => [q!%s %s % 2d %02d:%02d:%02d %04d!, q!$weekday_abbr[$_[WDAY]-1], $month_abbr[$_[MONTH]], $_[DAY], $_[HOUR], $_[MIN], $_[SEC], $_[YEAR]+1900!],
+    'C' => [q!%d!, q!$_[YEAR]%100!],
+    'd' => [q!%02d!, q!$_[DAY]!],
+    'D' => [q!%02d/%02d/%02d!, q!$_[MONTH]+1,$_[DAY],$_[YEAR]%100!],
+    'e' => [q!%d!, q!$_[DAY]!],
+    'F' => [q!%04d-%02d-%02d!, q!$_[YEAR]+1900,$_[MONTH]+1,$_[DAY]!],
     'G' => [q!%s!], #posix
     'g' => [q!%s!], #posix
-    'h' => [q!%s!, q!$month_abbr[$month-1]!],
-    'H' => [q!%02d!, q!$hour!],
-    'I' => [q!%02d!, q!$hour%12 || 1!],
-    'j' => [q!%03d!, q!$yearday+1!],
-    'k' => [q!% 2d!, q!$hour!],
-    'l' => [q!% 2d!, q!$hour%12 || 1!],
-    'm' => [q!%02d!, q!$month!],
-    'M' => [q!%02d!, q!$minute!],
+    'h' => [q!%s!, q!$month_abbr[$_[MONTH]]!],
+    'H' => [q!%02d!, q!$_[HOUR]!],
+    'I' => [q!%02d!, q!$_[HOUR]%12 || 1!],
+    'j' => [q!%03d!, q!$_[YDAY]+1!],
+    'k' => [q!% 2d!, q!$_[HOUR]!],
+    'l' => [q!% 2d!, q!$_[HOUR]%12 || 1!],
+    'm' => [q!%02d!, q!$_[MONTH]+1!],
+    'M' => [q!%02d!, q!$_[MIN]!],
     'n' => [q!%s!, q!"\n"!],
-    'p' => [q!%s!, q!$hour > 0 && $hour < 13 ? "AM" : "PM"!],
-    'P' => [q!%s!, q!$hour > 0 && $hour < 13 ? "am" : "pm"!],
-    'r' => [q!%02d:%02d:%02d %s!, q!$hour%12 || 1, $minute, $second!],
-    'R' => [q!%02d:%02d!, q!$hour, $minute!],
-    's' => [q!%s!, q!Time::Local::timegm($second,$minute,$hour,$day,$month-1,$year-1900,$weekday,$yearday,$isdst)!],
-    'S' => [q!%02d!, q!$second!],
+    'p' => [q!%s!, q!$_[HOUR] > 0 && $_[HOUR] < 13 ? "AM" : "PM"!],
+    'P' => [q!%s!, q!$_[HOUR] > 0 && $_[HOUR] < 13 ? "am" : "pm"!],
+    'r' => [q!%02d:%02d:%02d %s!, q!$_[HOUR]%12 || 1, $_[MIN], $_[SEC]!],
+    'R' => [q!%02d:%02d!, q!$_[HOUR], $_[MIN]!],
+    's' => [q!%s!, q!Time::Local::timegm(@_)!],
+    'S' => [q!%02d!, q!$_[SEC]!],
     't' => [q!%s!, q!"\t"!],
-    'T' => [q!%02d:%02d:%02d!, q!$hour, $minute, $second!],
+    'T' => [q!%02d:%02d:%02d!, q!$_[HOUR], $_[MIN], $_[SEC]!],
     'U' => [q!%s!], #posix
-    'u' => [q!%d!, q!$weekday || 7!],
+    'u' => [q!%d!, q!$_[WDAY] || 7!],
     'v' => [q!%s!], #posix
     'W' => [q!%s!], #posix
-    'w' => [q!%d!, q!$weekday!],
-    'x' => [q!%02d/%02d/%02d!, q!$month,$day,$year%100!],
-    'X' => [q!%02d:%02d:%02d!, q!$hour, $minute, $second!],
-    'y' => [q!%02d!, q!$year%100!],
-    'Y' => [q!%02d!, q!$year!],
+    'w' => [q!%d!, q!$_[WDAY]!],
+    'x' => [q!%02d/%02d/%02d!, q!$_[MONTH]+1,$_[DAY],$_[YEAR]%100!],
+    'X' => [q!%02d:%02d:%02d!, q!$_[HOUR], $_[MIN], $_[SEC]!],
+    'y' => [q!%02d!, q!$_[YEAR]%100!],
+    'Y' => [q!%02d!, q!$_[YEAR]+1900!],
     'z' => [q!%s!, q!$this->{tzoffset}!],
     'Z' => [q!%s!, q!$this->{tzname}!],
     '%' => [q!%s!, q!'%'!],
@@ -235,14 +245,11 @@ sub compile {
 
     $fmt = q~sub {
         my $this = shift;
-        my ($second,$minute,$hour,$day,$month,$year,$weekday,$yearday,$isdst) = @_;
-        if ( ! exists $this->{tzoffset} || ! exists $this->{isdst_cache} || $_[8] ne $this->{isdst_cache} ) {
-            $this->{isdst_cache} = $_[8];
+        if ( ! exists $this->{tzoffset} || ! exists $this->{isdst_cache} || $_[ISDST] ne $this->{isdst_cache} ) {
+            $this->{isdst_cache} = $_[ISDST];
             $this->{tzoffset} = tzoffset(0, @_);
             $this->{tzname} = tzname(@_);
         }
-        $month= $month + 1; #month
-        $year = $year + 1900; #year
         sprintf q!~ . $fmt .  q~!,~ . join(",\n", @$args) . q~;
     }~;
     $self->{_code} = $fmt;
@@ -254,11 +261,9 @@ sub compile {
 
 sub display {
     my $self = shift;
-    my @t = @_;
-    @t = localtime unless @t;
     Carp::croak 'Usage: display(sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)'
-        if @t != 9;
-    $self->{_handler}->($self,@t);
+        if @_ != 9;
+    $self->{_handler}->($self,@_);
 }
 
 1;
