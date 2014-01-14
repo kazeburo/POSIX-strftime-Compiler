@@ -13,16 +13,22 @@ cmpthese(timethese(-1, {
     'posix' => sub {
         POSIX::strftime($fmt,@t);
     },
+    'compiler_w/o_cache' => sub {
+        my $compiler2 = Time::Format::Compiler->new($fmt);
+        $compiler2->display(@t);
+    },
 }));
 
 
 __DATA__
 % perl -Ilib eg/benchmark.pl
-Benchmark: running compiler, posix for at least 1 CPU seconds...
-  compiler:  1 wallclock secs ( 1.04 usr +  0.00 sys =  1.04 CPU) @ 300754.81/s (n=312785)
-     posix:  1 wallclock secs ( 1.09 usr +  0.00 sys =  1.09 CPU) @ 255530.28/s (n=278528)
-             Rate    posix compiler
-posix    255530/s       --     -15%
-compiler 300755/s      18%       --
+Benchmark: running compiler, compiler_w/o_cache, posix for at least 1 CPU seconds...
+  compiler:  0 wallclock secs ( 1.06 usr +  0.00 sys =  1.06 CPU) @ 295080.19/s (n=312785)
+compiler_w/o_cache:  1 wallclock secs ( 1.14 usr +  0.01 sys =  1.15 CPU) @ 3894.78/s (n=4479)
+     posix:  1 wallclock secs ( 1.07 usr +  0.00 sys =  1.07 CPU) @ 247349.53/s (n=264664)
+                       Rate compiler_w/o_cache            posix         compiler
+compiler_w/o_cache   3895/s                 --             -98%             -99%
+posix              247350/s              6251%               --             -16%
+compiler           295080/s              7476%              19%               --
 
 
