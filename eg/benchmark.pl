@@ -10,14 +10,14 @@ my $compiler = Time::Format::Compiler->new($fmt);
 
 cmpthese(timethese(-1, {
     'compiler' => sub {
-        $compiler->display(@t);
+        $compiler->to_string(@t);
     },
     'posix' => sub {
         POSIX::strftime($fmt,@t);
     },
     'compiler_w/o_cache' => sub {
         my $compiler2 = Time::Format::Compiler->new($fmt);
-        $compiler2->display(@t);
+        $compiler2->to_string(@t);
     },
     'http_date' => sub {
         HTTP::Date::time2str();

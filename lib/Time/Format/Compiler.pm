@@ -5,7 +5,6 @@ use strict;
 use warnings;
 use Carp;
 use Time::Local qw//;
-use POSIX qw//;
 
 our $VERSION = "0.01";
 
@@ -20,6 +19,10 @@ use constant {
     YDAY => 7,
     ISDST => 8
 };
+
+use constant ISO_WEEK_START_WDAY => 1;  # Monday
+use constant ISO_WEEK1_WDAY      => 4;  # Thursday
+use constant YDAY_MINIMUM        => -366;
 
 our %formats = (
     'rfc2822' => '%a, %d %b %Y %T %z',
@@ -154,42 +157,100 @@ sub tzname {
     return 'Etc';
 }
 
+sub iso_week_days {
+    my ($yday, $wday) = @_;
+
+    # Add enough to the first operand of % to make it nonnegative.
+    my $big_enough_multiple_of_7 = (int(- YDAY_MINIMUM / 7) + 2) * 7;
+    return ($yday
+        - ($yday - $wday + ISO_WEEK1_WDAY + $big_enough_multiple_of_7) % 7
+        + ISO_WEEK1_WDAY - ISO_WEEK_START_WDAY);
+}
+
+sub isleap {
+    my $year = shift;
+    return ($year % 4 == 0 && ($year % 100 != 0 || $year % 400 == 0)) ? 1 : 0
+}
+
+sub isodaysnum {
+    my @t = @_;
+
+    # Normalize @t array, we need WDAY
+    $t[SEC] = int $t[SEC];
+
+    my $year = ($t[YEAR] + ($t[YEAR] < 0 ? 1900 % 400 : 1900 % 400 - 400));
+    my $year_adjust = 0;
+    my $days = iso_week_days($t[YDAY], $t[WDAY]);
+
+    if ($days < 0) {
+        # This ISO week belongs to the previous year.
+        $year_adjust = -1;
+        $days = iso_week_days($t[YDAY] + (365 + isleap($year -1)), $t[WDAY]);
+    }
+    else {
+        my $d = iso_week_days($t[YDAY] - (365 + isleap($year)), $t[WDAY]);
+        if ($d >= 0) {
+            # This ISO week belongs to the next year.  */
+            $year_adjust = 1;
+            $days = $d;
+        }
+    }
+
+    return ($days, $year_adjust);
+}
+
+sub isoyearnum {
+    my ($days, $year_adjust) = isodaysnum(@_);
+    return $_[YEAR] + 1900 + $year_adjust;
+}
+
+sub isoweeknum {
+    my ($days, $year_adjust) = isodaysnum(@_);
+    return int($days / 7) + 1;
+}
+
+sub first_day_wday {
+    my $year = shift;
+    (gmtime( Time::Local::timegm((0,0,0,1,0,$year)) ))[WDAY];
+}
+
 our %rules = (
     '%' => [q!%s!, q!%!],
-    'a' => [q!%s!, q!$weekday_abbr[$_[WDAY]-1]!],
-    'A' => [q!%s!, q!$weekday_name[$_[WDAY]-1]!],
+    'a' => [q!%s!, q!$weekday_abbr[$_[WDAY]]!],
+    'A' => [q!%s!, q!$weekday_name[$_[WDAY]]!],
     'b' => [q!%s!, q!$month_abbr[$_[MONTH]]!],
     'B' => [q!%s!, q!$month_name[$_[MONTH]]!],
-    'c' => [q!%s %s % 2d %02d:%02d:%02d %04d!, q!$weekday_abbr[$_[WDAY]-1], $month_abbr[$_[MONTH]], $_[DAY], $_[HOUR], $_[MIN], $_[SEC], $_[YEAR]+1900!],
-    'C' => [q!%d!, q!$_[YEAR]%100!],
+    'c' => [q!%s %s % 2d %02d:%02d:%02d %04d!, q!$weekday_abbr[$_[WDAY]], $month_abbr[$_[MONTH]], $_[DAY], $_[HOUR], $_[MIN], $_[SEC], $_[YEAR]+1900!],
+    'C' => [q!%02d!, q!($_[YEAR]+1900)/100!],
     'd' => [q!%02d!, q!$_[DAY]!],
     'D' => [q!%02d/%02d/%02d!, q!$_[MONTH]+1,$_[DAY],$_[YEAR]%100!],
-    'e' => [q!%d!, q!$_[DAY]!],
+    'e' => [q!%2d!, q!$_[DAY]!],
     'F' => [q!%04d-%02d-%02d!, q!$_[YEAR]+1900,$_[MONTH]+1,$_[DAY]!],
-    'G' => [q!%s!], #posix
-    'g' => [q!%s!], #posix
+    'G' => [q!%04d!, q!isoyearnum(@_)!],
+    'g' => [q!%02d!, q!isoyearnum(@_)%100!],
     'h' => [q!%s!, q!$month_abbr[$_[MONTH]]!],
     'H' => [q!%02d!, q!$_[HOUR]!],
     'I' => [q!%02d!, q!$_[HOUR]%12 || 1!],
     'j' => [q!%03d!, q!$_[YDAY]+1!],
-    'k' => [q!% 2d!, q!$_[HOUR]!],
-    'l' => [q!% 2d!, q!$_[HOUR]%12 || 1!],
+    'k' => [q!%2d!, q!$_[HOUR]!],
+    'l' => [q!%2d!, q!$_[HOUR]%12 || 1!],
     'm' => [q!%02d!, q!$_[MONTH]+1!],
     'M' => [q!%02d!, q!$_[MIN]!],
     'n' => [q!%s!, q!"\n"!],
+    'N' => [q!%s!, q!substr(sprintf('%.9f', $_[SEC] - int $_[SEC]), 2)!],
     'p' => [q!%s!, q!$_[HOUR] > 0 && $_[HOUR] < 13 ? "AM" : "PM"!],
     'P' => [q!%s!, q!$_[HOUR] > 0 && $_[HOUR] < 13 ? "am" : "pm"!],
-    'r' => [q!%02d:%02d:%02d %s!, q!$_[HOUR]%12 || 1, $_[MIN], $_[SEC]!],
+    'r' => [q!%02d:%02d:%02d %s!, q!$_[HOUR]%12 || 1, $_[MIN], $_[SEC], $_[HOUR] > 0 && $_[HOUR] < 13 ? "AM" : "PM"!],
     'R' => [q!%02d:%02d!, q!$_[HOUR], $_[MIN]!],
-    's' => [q!%s!, q!Time::Local::timegm(@_)!],
+    's' => [q!%s!, q!int(Time::Local::timegm(@_))!],
     'S' => [q!%02d!, q!$_[SEC]!],
     't' => [q!%s!, q!"\t"!],
     'T' => [q!%02d:%02d:%02d!, q!$_[HOUR], $_[MIN], $_[SEC]!],
-    'U' => [q!%s!], #posix
     'u' => [q!%d!, q!$_[WDAY] || 7!],
-    'v' => [q!%s!], #posix
-    'W' => [q!%s!], #posix
+    'U' => [q!%02d!, q!int( ($_[YDAY] + 1 - (7 - first_day_wday($_[YEAR])) + 6 ) / 7 )!], #first Sunday as the first day of week 01
+    'V' => [q!%02d!, q!isoweeknum(@_)!],
     'w' => [q!%d!, q!$_[WDAY]!],
+    'W' => [q!%02d!, q!int( ($_[YDAY] + 1 - (7 - first_day_wday($_[YEAR])) + 5) / 7 )!], #first Monday as the first day of week 01
     'x' => [q!%02d/%02d/%02d!, q!$_[MONTH]+1,$_[DAY],$_[YEAR]%100!],
     'X' => [q!%02d:%02d:%02d!, q!$_[HOUR], $_[MIN], $_[SEC]!],
     'y' => [q!%02d!, q!$_[YEAR]%100!],
@@ -205,7 +266,7 @@ my $char_handler = sub {
     die unless exists $rules{$char};
     my ($format, $code) = @{$rules{$char}};
     if ( !$code ) {
-        $code = q~POSIX::strftime('%~.$format.q~',@_)~;
+        $code = q~POSIX::strftime('%~.$char.q~',@_)~;
     }
     push @{$self->{_args}}, $code;
     return $format;
@@ -242,9 +303,12 @@ sub compile {
     my @weekday_abbr = qw( Sun Mon Tue Wed Thu Fri Sat );
     my @month_name = qw( January February March April May June July August September October November December );
     my @month_abbr = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
-
     $fmt = q~sub {
         my $this = shift;
+        @_ = localtime unless @_;
+        Carp::croak 'Usage: display(sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)'
+            if @_ != 9 and @_ != 6;
+        @_ = localtime(Time::Local::timelocal(@_)) if @_ == 6;
         if ( ! exists $this->{tzoffset} || ! exists $this->{isdst_cache} || $_[ISDST] ne $this->{isdst_cache} ) {
             $this->{isdst_cache} = $_[ISDST];
             $this->{tzoffset} = tzoffset(0, @_);
@@ -253,18 +317,14 @@ sub compile {
         sprintf q!~ . $fmt .  q~!,~ . join(",\n", @$args) . q~;
     }~;
     $self->{_code} = $fmt;
-    $self->{_handler} = eval $fmt; ## no critic    
+    my $handler = eval $fmt; ## no critic    
     die $@ if $@;
+    {
+        no warnings 'redefine';
+        *to_string = $handler;
+    }
 }
 
-
-
-sub display {
-    my $self = shift;
-    Carp::croak 'Usage: display(sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)'
-        if @_ != 9;
-    $self->{_handler}->($self,@_);
-}
 
 1;
 __END__
