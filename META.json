@@ -43,6 +43,8 @@
       },
       "runtime" : {
          "requires" : {
+            "Carp" : "0",
+            "Time::Local" : "0",
             "perl" : "5.008004"
          }
       },
