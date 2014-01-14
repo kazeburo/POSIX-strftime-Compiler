@@ -333,19 +333,264 @@ __END__
 
 =head1 NAME
 
-POSIX::strftime::Compiler - It's new $module
+POSIX::strftime::Compiler - Compile strftime to perl
 
 =head1 SYNOPSIS
 
     use POSIX::strftime::Compiler;
 
+    my $psc = POSIX::strftime::Compiler->new('%a, %d %b %Y %T %z');
+    say $psc->to_string(localtime):
+
 =head1 DESCRIPTION
 
-POSIX::strftime::Compiler is ...
+POSIX::strftime::Compiler compiles strftime's format to perl and generates formatted string.
+
+POSIX::strftime::Compiler has compatibility with GNU strftime, But only supports "C" LOCALE.
+It's useful for logging and servers. 
+
+=head1 METHDO
+
+=over 4
+
+=item new($fmt:String)
+
+create instance of POSIX::strftime::Compiler.
+
+=item to_string(@time)
+
+generate formatted string.
+
+  my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
+  $psc->to_string($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst):
+
+=back
+
+=head1 SUPPORTED FORMAT
+
+=over 4
+
+=item C<%a>
+
+The abbreviated weekday name according to the current locale.
+
+=item C<%A>
+
+The full weekday name according to the current locale.
+
+=item C<%b>
+
+The abbreviated month name according to the current locale.
+
+=item C<%B>
+
+The full month name according to the current locale.
+
+=item C<%c>
+
+The preferred date and time representation for the current locale.
+
+=item C<%C>
+
+The century number (year/100) as a 2-digit integer. (SU)
+
+=item C<%d>
+
+The day of the month as a decimal number (range 01 to 31).
+
+=item C<%D>
+
+Equivalent to C<%m/%d/%y>. (for Americans only: Americans should note that in
+other countries C<%d/%m/%y> is rather common. This means that in international
+context this format is ambiguous and should not be used.) (SU)
+
+=item C<%e>
+
+Like C<%d>, the day of the month as a decimal number, but a leading zero is
+replaced by a space. (SU)
+
+=item C<%E>
+
+Modifier: use alternative format, see below. (SU)
+
+=item C<%F>
+
+Equivalent to C<%Y-%m-%d> (the ISO 8601 date format). (C99)
+
+=item C<%G>
+
+The ISO 8601 week-based year with century as a decimal number. The
+4-digit year corresponding to the ISO week number (see C<%V>). This has the
+same format and value as %Y, except that if the ISO week number belongs to the
+previous or next year, that year is used instead. (TZ)
+
+=item C<%g>
+
+Like C<%G>, but without century, that is, with a 2-digit year (00-99). (TZ)
+
+=item C<%h>
+
+Equivalent to C<%b>. (SU)
+
+=item C<%H>
+
+The hour as a decimal number using a 24-hour clock (range 00 to 23).
+
+=item C<%I>
+
+The hour as a decimal number using a 12-hour clock (range 01 to 12).
+
+=item C<%j>
+
+The day of the year as a decimal number (range 001 to 366).
+
+=item C<%k>
+
+The hour (24-hour clock) as a decimal number (range 0 to 23); single digits
+are preceded by a blank. (See also C<%H>.) (TZ)
+
+=item C<%l>
+
+The hour (12-hour clock) as a decimal number (range 1 to 12); single digits
+are preceded by a blank. (See also C<%I>.) (TZ)
+
+=item C<%m>
+
+The month as a decimal number (range 01 to 12).
+
+=item C<%M>
+
+The minute as a decimal number (range 00 to 59).
+
+=item C<%n>
+
+A newline character. (SU)
+
+=item C<%N>
+
+Nanoseconds (range 000000000 to 999999999). It is a non-POSIX extension and
+outputs a nanoseconds if there is floating seconds argument.
+
+=item C<%O>
+
+Modifier: use alternative format, see below. (SU)
+
+=item C<%p>
+
+Either "AM" or "PM" according to the given time value, or the corresponding
+strings for the current locale. Noon is treated as "PM" and midnight as "AM".
+
+=item C<%P>
+
+Like C<%p> but in lowercase: "am" or "pm" or a corresponding string for the
+current locale. (GNU)
+
+=item C<%r>
+
+The time in a.m. or p.m. notation. In the POSIX locale this is equivalent to
+C<%I:%M:%S %p>. (SU)
+
+=item C<%R>
+
+The time in 24-hour notation (%H:%M). (SU) For a version including the
+seconds, see C<%T> below.
+
+=item C<%s>
+
+The number of seconds since the Epoch, 1970-01-01 00:00:00 +0000 (UTC). (TZ)
+
+=item C<%S>
+
+The second as a decimal number (range 00 to 60). (The range is up to 60 to
+allow for occasional leap seconds.)
+
+=item C<%t>
+
+A tab character. (SU)
+
+=item C<%T>
+
+The time in 24-hour notation (C<%H:%M:%S>). (SU)
+
+=item C<%u>
+
+The day of the week as a decimal, range 1 to 7, Monday being 1. See also
+C<%w>. (SU)
+
+=item C<%U>
+
+The week number of the current year as a decimal number, range 00 to 53,
+starting with the first Sunday as the first day of week 01. See also C<%V> and
+C<%W>.
+
+=item C<%V>
+
+The ISO 8601 week number of the current year as a decimal number,
+range 01 to 53, where week 1 is the first week that has at least 4 days in the
+new year. See also C<%U> and C<%W>. (SU)
+
+=item C<%w>
+
+The day of the week as a decimal, range 0 to 6, Sunday being 0. See also
+C<%u>.
+
+=item C<%W>
+
+The week number of the current year as a decimal number, range 00 to 53,
+starting with the first Monday as the first day of week 01.
+
+=item C<%x>
+
+The preferred date representation for the current locale without the time.
+
+=item C<%X>
+
+The preferred time representation for the current locale without the date.
+
+=item C<%y>
+
+The year as a decimal number without a century (range 00 to 99).
+
+=item C<%Y>
+
+The year as a decimal number including the century.
+
+=item C<%z>
+
+The C<+hhmm> or C<-hhmm> numeric timezone (that is, the hour and minute offset
+from UTC). (SU)
+
+=item C<%Z>
+
+The timezone or name or abbreviation.
+
+=item C<%%>
+
+A literal C<%> character.
+
+=back
+
+%E([cCxXyY]) and %O([deHImMSuUVwWy]) is not supported, just remove E and O prefix.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item L<POSIX::strftime::GNU>
+
+POSIX::strftime::Compiler is built on POSIX::strftime::GNU::PP code
+
+=item L<POSIX>
+
+=item L<Apache::LogFormat::Compiler>
+
+=back
 
 =head1 LICENSE
 
 Copyright (C) Masahiro Nagano.
+
+Format specification is based on strftime(3) manual page which is a part of the Linux man-pages project.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
