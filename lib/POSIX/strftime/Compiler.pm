@@ -27,8 +27,9 @@ use constant {
     TZOFFSET => 2,
     TZNAME => 3,
     ISDST_CACHE => 4,
-    CODE => 6,
-    TZCACHE => 7,
+    CODE => 5,
+    TZCACHE => 6,
+    SUB => 7,
 };
 
 our %formats = (
@@ -193,7 +194,7 @@ sub compile {
     }
     $self->[TZCACHE] = $CLEAR_TZCACHE;
 
-    $fmt = q~sub ($@) {
+    $fmt = q~sub {
         my $this = shift;
         if ( @_ != 9  && @_ != 6 ) {
             Carp::croak 'Usage: to_string(sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)';
@@ -201,7 +202,7 @@ sub compile {
         if ( @_ == 6 ) {
             @_ = localtime(Time::Local::timelocal(@_));
         }
-        if (   $CLEAR_TZCACHE > $self->[TZCACHE] 
+        if (   $CLEAR_TZCACHE > $this->[TZCACHE] 
             || ! defined $this->[TZOFFSET] 
             || ! defined $this->[ISDST_CACHE] 
             || $_[ISDST] ne $this->[ISDST_CACHE] )
@@ -211,17 +212,16 @@ sub compile {
             $this->[TZOFFSET] = sprintf '%+03d%02u', $min_offset / 60, $min_offset % 60;
             $this->[TZNAME] = (POSIX::tzname())[$_[ISDST]];
             $this->[ISDST_CACHE] = $_[ISDST];
+            $this->[TZCACHE] = $CLEAR_TZCACHE;
         }
         sprintf(q!~ . $fmt .  q~!,~ . join(",", @$args) . q~);
     }~;
     $self->[CODE] = $fmt;
-    my $handler = eval $fmt; ## no critic    
+    $self->[SUB] = eval $fmt; ## no critic    
     die $@ if $@;
-    {
-        no warnings 'redefine';
-        *to_string = $handler;
-    }
 }
+
+sub to_string { $_[0]->[SUB]->(@_) }
 
 
 1;

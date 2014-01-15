@@ -39,12 +39,12 @@ cmpthese(timethese(-1, {
 __END__
 % perl -Ilib eg/benchmark.pl   
 Benchmark: running compiler, http_date, posix, sprintf for at least 1 CPU seconds...
-  compiler:  1 wallclock secs ( 1.08 usr +  0.01 sys =  1.09 CPU) @ 631310.09/s (n=688128)
- http_date:  1 wallclock secs ( 1.18 usr +  0.00 sys =  1.18 CPU) @ 530144.07/s (n=625570)
-     posix:  1 wallclock secs ( 1.09 usr +  0.00 sys =  1.09 CPU) @ 263044.95/s (n=286719)
-   sprintf:  1 wallclock secs ( 1.11 usr +  0.01 sys =  1.12 CPU) @ 936227.68/s (n=1048575)
-              Rate     posix http_date  compiler   sprintf
-posix     263045/s        --      -50%      -58%      -72%
-http_date 530144/s      102%        --      -16%      -43%
-compiler  631310/s      140%       19%        --      -33%
-sprintf   936228/s      256%       77%       48%        --
+  compiler:  2 wallclock secs ( 1.13 usr +  0.00 sys =  1.13 CPU) @ 507469.03/s (n=573440)
+ http_date:  2 wallclock secs ( 1.21 usr +  0.01 sys =  1.22 CPU) @ 512762.30/s (n=625570)
+     posix:  2 wallclock secs ( 1.08 usr +  0.00 sys =  1.08 CPU) @ 245059.26/s (n=264664)
+   sprintf:  0 wallclock secs ( 1.07 usr +  0.00 sys =  1.07 CPU) @ 918728.97/s (n=983040)
+              Rate     posix  compiler http_date   sprintf
+posix     245059/s        --      -52%      -52%      -73%
+compiler  507469/s      107%        --       -1%      -45%
+http_date 512762/s      109%        1%        --      -44%
+sprintf   918729/s      275%       81%       79%        --
