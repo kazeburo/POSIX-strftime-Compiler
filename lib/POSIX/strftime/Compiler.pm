@@ -7,7 +7,7 @@ use Carp;
 use Time::Local qw//;
 use POSIX qw//;
 
-our $VERSION = "0.02";
+our $VERSION = "0.03";
 
 use constant {
     SEC => 0,
