@@ -9,6 +9,12 @@ my @abbr = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
 my $t = time;
 my @lt = localtime;
 
+sub with_sprintf {
+    my $tz = '+0900';
+    sprintf '%02d/%s/%04d:%02d:%02d:%02d %s', $_[3], $abbr[$_[4]], $_[5]+1900, 
+        $_[2], $_[1], $_[0], $tz;
+}
+
 cmpthese(timethese(-1, {
     'compiler' => sub {
         $compiler->to_string(@lt);
@@ -25,24 +31,20 @@ cmpthese(timethese(-1, {
         HTTP::Date::time2str($t);
     },
     'sprintf' => sub {
-        my $tz = '+0900';
-        sprintf '%02d/%s/%04d:%02d:%02d:%02d %s', $lt[3], $abbr[$lt[4]], $lt[5]+1900, 
-          $lt[2], $lt[1], $lt[0], $tz;
+        with_sprintf(@lt);
     },
 }));
 
 
-__DATA__
-% perl -Ilib eg/benchmark.pl
+__END__
+% perl -Ilib eg/benchmark.pl   
 Benchmark: running compiler, http_date, posix, sprintf for at least 1 CPU seconds...
-  compiler:  2 wallclock secs ( 1.05 usr +  0.00 sys =  1.05 CPU) @ 655360.00/s (n=688128)
- http_date:  2 wallclock secs ( 1.12 usr +  0.00 sys =  1.12 CPU) @ 558544.64/s (n=625570)
-     posix:  1 wallclock secs ( 1.11 usr +  0.00 sys =  1.11 CPU) @ 258305.41/s (n=286719)
-   sprintf:  2 wallclock secs ( 1.10 usr +  0.00 sys =  1.10 CPU) @ 1251140.91/s (n=1376255)
-               Rate     posix http_date  compiler   sprintf
-posix      258305/s        --      -54%      -61%      -79%
-http_date  558545/s      116%        --      -15%      -55%
-compiler   655360/s      154%       17%        --      -48%
-sprintf   1251141/s      384%      124%       91%        --
-
-
+  compiler:  1 wallclock secs ( 1.08 usr +  0.01 sys =  1.09 CPU) @ 631310.09/s (n=688128)
+ http_date:  1 wallclock secs ( 1.18 usr +  0.00 sys =  1.18 CPU) @ 530144.07/s (n=625570)
+     posix:  1 wallclock secs ( 1.09 usr +  0.00 sys =  1.09 CPU) @ 263044.95/s (n=286719)
+   sprintf:  1 wallclock secs ( 1.11 usr +  0.01 sys =  1.12 CPU) @ 936227.68/s (n=1048575)
+              Rate     posix http_date  compiler   sprintf
+posix     263045/s        --      -50%      -58%      -72%
+http_date 530144/s      102%        --      -16%      -43%
+compiler  631310/s      140%       19%        --      -33%
+sprintf   936228/s      256%       77%       48%        --
