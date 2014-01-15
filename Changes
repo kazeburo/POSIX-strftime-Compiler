@@ -2,6 +2,10 @@ Revision history for Perl extension POSIX-strftime-Compiler
 
 {{$NEXT}}
 
+0.04 2014-01-15T15:19:20Z
+
+    - suppress warnings in test
+
 0.03 2014-01-15T15:11:57Z
 
     - use POSIX::tzname for trial
