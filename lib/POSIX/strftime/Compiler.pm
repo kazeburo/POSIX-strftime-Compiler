@@ -6,7 +6,7 @@ use warnings;
 use Carp;
 use Time::Local qw//;
 
-our $VERSION = "0.01";
+our $VERSION = "0.02";
 
 use constant {
     SEC => 0,
