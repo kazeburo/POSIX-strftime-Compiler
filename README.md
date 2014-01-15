@@ -17,7 +17,7 @@ Because this module compiles strftime to perl code, it has good performance.
 POSIX::strftime::Compiler has compatibility with GNU's strftime, but only supports "C" locale.
 It's useful for loggers and servers. 
 
-# METHDO
+# METHODS
 
 - new($fmt:String)
 
