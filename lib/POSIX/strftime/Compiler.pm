@@ -571,7 +571,7 @@ A literal C<%> character.
 
 =back
 
-%E[cCxXyY] and %O[deHImMSuUVwWy] are not supported, just remove E and O prefix.
+C<%E[cCxXyY]> and C<%O[deHImMSuUVwWy]> are not supported, just remove E and O prefix.
 
 =head1 SEE ALSO
 

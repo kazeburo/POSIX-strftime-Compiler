@@ -230,7 +230,7 @@ It's useful for loggers and servers.
 
     A literal `%` character.
 
-%E\[cCxXyY\] and %O\[deHImMSuUVwWy\] are not supported, just remove E and O prefix.
+`%E[cCxXyY]` and `%O[deHImMSuUVwWy]` are not supported, just remove E and O prefix.
 
 # SEE ALSO
 
