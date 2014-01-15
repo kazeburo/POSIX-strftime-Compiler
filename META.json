@@ -1,5 +1,5 @@
 {
-   "abstract" : "Compile strftime to perl",
+   "abstract" : "Compile strftime to perl. for logger and servers",
    "author" : [
       "Masahiro Nagano <kazeburo@gmail.com>"
    ],

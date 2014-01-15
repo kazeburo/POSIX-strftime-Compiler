@@ -1,6 +1,6 @@
 # NAME
 
-POSIX::strftime::Compiler - Compile strftime to perl
+POSIX::strftime::Compiler - Compile strftime to perl. for logger and servers
 
 # SYNOPSIS
 
@@ -11,10 +11,11 @@ POSIX::strftime::Compiler - Compile strftime to perl
 
 # DESCRIPTION
 
-POSIX::strftime::Compiler compiles strftime's format to perl and generates formatted string.
+POSIX::strftime::Compiler compiles strftime's format to perl. And generates formatted string.
+Because this module compiles strftime to perl code, it has good performance.
 
-POSIX::strftime::Compiler has compatibility with GNU strftime, But only supports "C" LOCALE.
-It's useful for logging and servers. 
+POSIX::strftime::Compiler has compatibility with GNU's strftime, but only supports "C" locale.
+It's useful for loggers and servers. 
 
 # METHDO
 
@@ -229,7 +230,7 @@ It's useful for logging and servers.
 
     A literal `%` character.
 
-%E(\[cCxXyY\]) and %O(\[deHImMSuUVwWy\]) is not supported, just remove E and O prefix.
+%E\[cCxXyY\] and %O\[deHImMSuUVwWy\] are not supported, just remove E and O prefix.
 
 # SEE ALSO
 

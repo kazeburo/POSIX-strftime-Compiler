@@ -17,12 +17,17 @@ use constant {
     YEAR => 5,
     WDAY => 6,
     YDAY => 7,
-    ISDST => 8
+    ISDST => 8,
+    ISO_WEEK_START_WDAY => 1,  # Monday
+    ISO_WEEK1_WDAY      => 4,  # Thursday
+    YDAY_MINIMUM        => -366,
+    FMT => 0,
+    ARGS => 1,
+    TZOFFSET => 2,
+    TZNAME => 3,
+    ISDST_CACHE => 4,
+    CODE => 6,
 };
-
-use constant ISO_WEEK_START_WDAY => 1;  # Monday
-use constant ISO_WEEK1_WDAY      => 4;  # Thursday
-use constant YDAY_MINIMUM        => -366;
 
 our %formats = (
     'rfc2822' => '%a, %d %b %Y %T %z',
@@ -255,20 +260,16 @@ our %rules = (
     'X' => [q!%02d:%02d:%02d!, q!$_[HOUR], $_[MIN], $_[SEC]!],
     'y' => [q!%02d!, q!$_[YEAR]%100!],
     'Y' => [q!%02d!, q!$_[YEAR]+1900!],
-    'z' => [q!%s!, q!$this->{tzoffset}!],
-    'Z' => [q!%s!, q!$this->{tzname}!],
+    'z' => [q!%s!, q!$this->[TZOFFSET]!],
+    'Z' => [q!%s!, q!$this->[TZNAME]!],
     '%' => [q!%s!, q!'%'!],
-    '+' => [q!%s!], #posix
 );
 
 my $char_handler = sub {
     my ($self, $char) = @_;
     die unless exists $rules{$char};
     my ($format, $code) = @{$rules{$char}};
-    if ( !$code ) {
-        $code = q~POSIX::strftime('%~.$char.q~',@_)~;
-    }
-    push @{$self->{_args}}, $code;
+    push @{$self->[ARGS]}, $code;
     return $format;
 };
 
@@ -277,17 +278,16 @@ sub new {
     my $fmt = shift || "rfc2822";
     $fmt = $formats{$fmt} if exists $formats{$fmt};
 
-    my $self = bless {
-        fmt => $fmt,
-    }, $class; 
+    my $self = bless [$fmt], $class;
     $self->compile();
     return $self;
 }
 
+
 sub compile {
     my $self = shift;
-    my $fmt = $self->{fmt};
-    $self->{_args} = [];
+    my $fmt = $self->[FMT];
+    $self->[ARGS] = [];
     my $rule_chars = join "", keys %rules;
     $fmt =~ s!\%E([cCxXyY])!%$1!g;
     $fmt =~ s!\%O([deHImMSuUVwWy])!%$1!g;
@@ -296,25 +296,27 @@ sub compile {
              \%([$rule_chars])
         )
     ! $char_handler->($self, $1) !egx;
-    my $args = delete $self->{_args};
+    my $args = $self->[ARGS];
     my @weekday_name = qw( Sunday Monday Tuesday Wednesday Thursday Friday Saturday);
     my @weekday_abbr = qw( Sun Mon Tue Wed Thu Fri Sat );
     my @month_name = qw( January February March April May June July August September October November December );
     my @month_abbr = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
-    $fmt = q~sub {
+    $fmt = q~sub ($@) {
         my $this = shift;
-        @_ = localtime if @_ == 0;
-        Carp::croak 'Usage: to_string(sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)'
-            if @_ != 9 and @_ != 6;
-        @_ = localtime(Time::Local::timelocal(@_)) if @_ == 6;
-        if ( ! exists $this->{tzoffset} || ! exists $this->{isdst_cache} || $_[ISDST] ne $this->{isdst_cache} ) {
-            $this->{isdst_cache} = $_[ISDST];
-            $this->{tzoffset} = tzoffset(0, @_);
-            $this->{tzname} = tzname(@_);
+        if ( @_ != 9  && @_ != 6 ) {
+            Carp::croak 'Usage: to_string(sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)';
         }
-        sprintf q!~ . $fmt .  q~!,~ . join(",", @$args) . q~;
+        if ( @_ == 6 ) {
+            @_ = gmtime(Time::Local::timegm(@_));
+        }
+        if ( ! defined $this->[TZOFFSET] || ! defined $this->[ISDST_CACHE] || $_[ISDST] ne $this->[ISDST_CACHE] ) {
+            $this->[ISDST_CACHE] = $_[ISDST];
+            $this->[TZOFFSET] = tzoffset(0, @_);
+            $this->[TZNAME] = tzname(@_);
+        }
+        sprintf(q!~ . $fmt .  q~!,~ . join(",", @$args) . q~);
     }~;
-    $self->{_code} = $fmt;
+    $self->[CODE] = $fmt;
     my $handler = eval $fmt; ## no critic    
     die $@ if $@;
     {
@@ -331,7 +333,7 @@ __END__
 
 =head1 NAME
 
-POSIX::strftime::Compiler - Compile strftime to perl
+POSIX::strftime::Compiler - Compile strftime to perl. for logger and servers
 
 =head1 SYNOPSIS
 
@@ -342,10 +344,11 @@ POSIX::strftime::Compiler - Compile strftime to perl
 
 =head1 DESCRIPTION
 
-POSIX::strftime::Compiler compiles strftime's format to perl and generates formatted string.
+POSIX::strftime::Compiler compiles strftime's format to perl. And generates formatted string.
+Because this module compiles strftime to perl code, it has good performance.
 
-POSIX::strftime::Compiler has compatibility with GNU strftime, But only supports "C" LOCALE.
-It's useful for logging and servers. 
+POSIX::strftime::Compiler has compatibility with GNU's strftime, but only supports "C" locale.
+It's useful for loggers and servers. 
 
 =head1 METHDO
 
@@ -568,7 +571,7 @@ A literal C<%> character.
 
 =back
 
-%E([cCxXyY]) and %O([deHImMSuUVwWy]) is not supported, just remove E and O prefix.
+%E[cCxXyY] and %O[deHImMSuUVwWy] are not supported, just remove E and O prefix.
 
 =head1 SEE ALSO
 
