@@ -36,7 +36,7 @@ for my $timezones (@timezones) {
             my $str = $psc->to_string(localtime(timelocal(0, 45, 12, $day, $month - 1, $year)));
             is $str, $tz[$i];
             my $str2 = $psc2->to_string(localtime(timelocal(0, 45, 12, $day, $month - 1, $year)));
-            is length($str2), 3;
+            ok length($str2) == 3 or length($str2) == 4;
 
             $i++;
         }
