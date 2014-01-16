@@ -29,8 +29,6 @@ for my $timezones (@timezones) {
     my ($timezone, @tz) = @$timezones;
     local $ENV{TZ} = $timezone;
     POSIX::tzset;
-    $psc->clear_tzcache;
-    $psc2->clear_tzcache;
 
     subtest "$timezone" => sub {
         my $i=0;

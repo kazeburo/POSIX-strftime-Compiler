@@ -29,26 +29,34 @@ cmpthese(timethese(-1, {
 #        my $compiler2 = Time::Format::Compiler->new($fmt);
 #        $compiler2->to_string(@t);
 #    },
-    'http_date' => sub {
-        HTTP::Date::time2str($t);
-    },
-    'sprintf' => sub {
-        with_sprintf(localtime($t));
-    },
+#    'http_date' => sub {
+#        HTTP::Date::time2str($t);
+#    },
+#    'sprintf' => sub {
+#        with_sprintf(localtime($t));
+#    },
 }));
 
 
 __END__
 % perl -Ilib eg/benchmark.pl   
-Benchmark: running compiler, compiler_strftime, http_date, posix, sprintf for at least 1 CPU seconds...
-  compiler:  1 wallclock secs ( 1.12 usr +  0.00 sys =  1.12 CPU) @ 409600.00/s (n=458752)
-compiler_strftime:  1 wallclock secs ( 1.09 usr +  0.00 sys =  1.09 CPU) @ 371358.72/s (n=404781)
- http_date:  1 wallclock secs ( 1.00 usr +  0.00 sys =  1.00 CPU) @ 573439.00/s (n=573439)
-     posix:  1 wallclock secs ( 1.13 usr +  0.00 sys =  1.13 CPU) @ 219298.23/s (n=247807)
-   sprintf:  0 wallclock secs ( 1.00 usr +  0.01 sys =  1.01 CPU) @ 567761.39/s (n=573439)
-                      Rate    posix compiler_strftime compiler sprintf http_date
-posix             219298/s       --              -41%     -46%    -61%      -62%
-compiler_strftime 371359/s      69%                --      -9%    -35%      -35%
-compiler          409600/s      87%               10%       --    -28%      -29%
-sprintf           567761/s     159%               53%      39%      --       -1%
-http_date         573439/s     161%               54%      40%      1%        --
+Benchmark: running compiler, compiler_strftime, posix for at least 1 CPU seconds...
+  compiler:  0 wallclock secs ( 1.10 usr +  0.01 sys =  1.11 CPU) @ 140893.69/s (n=156392)
+compiler_strftime:  1 wallclock secs ( 1.01 usr +  0.00 sys =  1.01 CPU) @ 143735.64/s (n=145173)
+     posix:  1 wallclock secs ( 1.14 usr + -0.00 sys =  1.14 CPU) @ 196415.79/s (n=223914)
+                      Rate          compiler compiler_strftime             posix
+compiler          140894/s                --               -2%              -28%
+compiler_strftime 143736/s                2%                --              -27%
+posix             196416/s               39%               37%                --
+
+
+## without '%z'
+Benchmark: running compiler, compiler_strftime, posix for at least 1 CPU seconds...
+  compiler:  1 wallclock secs ( 1.07 usr +  0.00 sys =  1.07 CPU) @ 459364.49/s (n=491520)
+compiler_strftime:  1 wallclock secs ( 1.12 usr +  0.00 sys =  1.12 CPU) @ 438857.14/s (n=491520)
+     posix:  1 wallclock secs ( 1.02 usr +  0.00 sys =  1.02 CPU) @ 240941.18/s (n=245760)
+                      Rate             posix compiler_strftime          compiler
+posix             240941/s                --              -45%              -48%
+compiler_strftime 438857/s               82%                --               -4%
+compiler          459364/s               91%                5%                --
+

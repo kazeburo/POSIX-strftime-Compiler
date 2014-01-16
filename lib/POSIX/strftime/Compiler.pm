@@ -37,6 +37,12 @@ our %formats = (
     'rfc822' => '%a, %d %b %y %T %z',
 );
 
+sub tzoffset {
+    my @g = gmtime(POSIX::mktime(@_));
+    my $min = ($_[2] - $g[2] + ((($_[5]<<9)|$_[7]) <=> (($g[5]<<9)|$g[7])) * 24) * 60 + $_[1] - $g[1];
+    return ($min/60,$min%60);
+}
+
 # copy from POSIX/strftime/GNU/PP.pm and modify
 sub iso_week_days {
     my ($yday, $wday) = @_;
@@ -136,8 +142,8 @@ our %rules = (
     'X' => [q!%02d:%02d:%02d!, q!$_[HOUR], $_[MIN], $_[SEC]!],
     'y' => [q!%02d!, q!$_[YEAR]%100!],
     'Y' => [q!%02d!, q!$_[YEAR]+1900!],
-    'z' => [q!%s!, q!$tzoffset!],
-    'Z' => [q!%s!, q!$tzname!],
+    'z' => [q!%+03d%02u!, q!tzoffset(@_)!],
+    'Z' => [q!%s!, q!(POSIX::tzname())[$_[ISDST]]!],
     '%' => [q!%s!, q!'%'!],
 );
 
@@ -159,13 +165,6 @@ sub new {
     return $self;
 }
 
-my $INSTALL_TZSET = 0;
-my $CLEAR_TZCACHE = 0;
-
-sub clear_tzcache {
-    $CLEAR_TZCACHE++;
-}
-
 sub compile {
     my $self = shift;
     my $fmt = $self->[FMT];
@@ -184,27 +183,14 @@ sub compile {
     my @month_name = qw( January February March April May June July August September October November December );
     my @month_abbr = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
 
-    $self->[TZ_CACHE] = $CLEAR_TZCACHE;
-    $self->[ISDST_CACHE] = -1;
-    my ($tzname,$tzoffset);
+    my ($tzoffset);
 
     $fmt = q~sub {
-        my $this = shift;
         if ( @_ != 9  && @_ != 6 ) {
             Carp::croak 'Usage: to_string(sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)';
         }
         if ( @_ == 6 ) {
             @_ = localtime(Time::Local::timelocal(@_));
-        }        
-        
-        if (   $CLEAR_TZCACHE > $this->[TZ_CACHE] 
-            || $_[ISDST] != $this->[ISDST_CACHE] )
-        {
-            my $min_offset = int((Time::Local::timegm(@_) - Time::Local::timelocal(@_)) / 60);
-            $tzoffset = sprintf '%+03d%02u', $min_offset / 60, $min_offset % 60;
-            $tzname = (POSIX::tzname())[$_[ISDST]];
-            $this->[ISDST_CACHE] = $_[ISDST];
-            $this->[TZ_CACHE] = $CLEAR_TZCACHE;
         }
         sprintf(q!~ . $fmt .  q~!,~ . join(",", @$args) . q~);
     }~;
@@ -213,13 +199,16 @@ sub compile {
     die $@ if $@;
 }
 
-sub to_string { $_[0]->[SUB]->(@_) }
+sub to_string {
+    my $self = shift;
+    $self->[SUB]->(@_)
+}
 
 my %STRFTIME;
 sub strftime {
     my $fmt = shift;
-    $STRFTIME{$fmt} ||= POSIX::strftime::Compiler->new($fmt);
-    $STRFTIME{$fmt}->[SUB]->($STRFTIME{$fmt}, @_);
+    $STRFTIME{$fmt} ||= POSIX::strftime::Compiler->new($fmt)->[SUB];
+    $STRFTIME{$fmt}->(@_);
 }
 
 1;
