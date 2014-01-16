@@ -6,8 +6,10 @@ use warnings;
 use Carp;
 use Time::Local qw//;
 use POSIX qw//;
+use base qw/Exporter/;
 
 our $VERSION = "0.04";
+our @EXPORT_OK = qw/strftime/;
 
 use constant {
     SEC => 0,
@@ -23,13 +25,11 @@ use constant {
     ISO_WEEK1_WDAY      => 4,  # Thursday
     YDAY_MINIMUM        => -366,
     FMT => 0,
-    ARGS => 1,
-    TZOFFSET => 2,
-    TZNAME => 3,
-    ISDST_CACHE => 4,
-    CODE => 5,
-    TZCACHE => 6,
-    SUB => 7,
+    SUB => 1,
+    ARGS => 2,
+    CODE => 3,
+    TZ_CACHE => 4,
+    ISDST_CACHE => 5,
 };
 
 our %formats = (
@@ -136,8 +136,8 @@ our %rules = (
     'X' => [q!%02d:%02d:%02d!, q!$_[HOUR], $_[MIN], $_[SEC]!],
     'y' => [q!%02d!, q!$_[YEAR]%100!],
     'Y' => [q!%02d!, q!$_[YEAR]+1900!],
-    'z' => [q!%s!, q!$this->[TZOFFSET]!],
-    'Z' => [q!%s!, q!$this->[TZNAME]!],
+    'z' => [q!%s!, q!$tzoffset!],
+    'Z' => [q!%s!, q!$tzname!],
     '%' => [q!%s!, q!'%'!],
 );
 
@@ -159,9 +159,12 @@ sub new {
     return $self;
 }
 
-
 my $INSTALL_TZSET = 0;
 my $CLEAR_TZCACHE = 0;
+
+sub clear_tzcache {
+    $CLEAR_TZCACHE++;
+}
 
 sub compile {
     my $self = shift;
@@ -181,18 +184,9 @@ sub compile {
     my @month_name = qw( January February March April May June July August September October November December );
     my @month_abbr = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
 
-    if ( !$INSTALL_TZSET ) {
-        my $orignal = POSIX->can('tzset');
-        {
-            no warnings 'redefine';
-            *POSIX::tzset = sub {
-                $orignal->();
-                $CLEAR_TZCACHE++;
-            };
-        }
-        $INSTALL_TZSET = 1;
-    }
-    $self->[TZCACHE] = $CLEAR_TZCACHE;
+    $self->[TZ_CACHE] = $CLEAR_TZCACHE;
+    $self->[ISDST_CACHE] = -1;
+    my ($tzname,$tzoffset);
 
     $fmt = q~sub {
         my $this = shift;
@@ -201,28 +195,32 @@ sub compile {
         }
         if ( @_ == 6 ) {
             @_ = localtime(Time::Local::timelocal(@_));
-        }
-        if (   $CLEAR_TZCACHE > $this->[TZCACHE] 
-            || ! defined $this->[TZOFFSET] 
-            || ! defined $this->[ISDST_CACHE] 
-            || $_[ISDST] ne $this->[ISDST_CACHE] )
+        }        
+        
+        if (   $CLEAR_TZCACHE > $this->[TZ_CACHE] 
+            || $_[ISDST] != $this->[ISDST_CACHE] )
         {
-            scalar localtime(); # for init
             my $min_offset = int((Time::Local::timegm(@_) - Time::Local::timelocal(@_)) / 60);
-            $this->[TZOFFSET] = sprintf '%+03d%02u', $min_offset / 60, $min_offset % 60;
-            $this->[TZNAME] = (POSIX::tzname())[$_[ISDST]];
+            $tzoffset = sprintf '%+03d%02u', $min_offset / 60, $min_offset % 60;
+            $tzname = (POSIX::tzname())[$_[ISDST]];
             $this->[ISDST_CACHE] = $_[ISDST];
-            $this->[TZCACHE] = $CLEAR_TZCACHE;
+            $this->[TZ_CACHE] = $CLEAR_TZCACHE;
         }
         sprintf(q!~ . $fmt .  q~!,~ . join(",", @$args) . q~);
     }~;
     $self->[CODE] = $fmt;
-    $self->[SUB] = eval $fmt; ## no critic    
+    $self->[SUB] = eval $fmt; ## no critic
     die $@ if $@;
 }
 
 sub to_string { $_[0]->[SUB]->(@_) }
 
+my %STRFTIME;
+sub strftime {
+    my $fmt = shift;
+    $STRFTIME{$fmt} ||= POSIX::strftime::Compiler->new($fmt);
+    $STRFTIME{$fmt}->[SUB]->($STRFTIME{$fmt}, @_);
+}
 
 1;
 __END__

@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
-use POSIX::strftime::Compiler
+use POSIX::strftime::Compiler;
 
 is( POSIX::strftime::Compiler->new('%gW%V')->to_string((0, 0, 0, 31, 11, 111)), '11W52', '2011-12-31');
 is( POSIX::strftime::Compiler->new('%gW%V')->to_string((0, 0, 0,  1,  0, 112)), '11W52', '2012-01-01');

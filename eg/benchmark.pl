@@ -7,7 +7,6 @@ my $fmt = '%d/%b/%Y:%T %z';
 my $compiler = POSIX::strftime::Compiler->new($fmt);
 my @abbr = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
 my $t = time;
-my @lt = localtime;
 
 sub with_sprintf {
     my $tz = '+0900';
@@ -17,10 +16,13 @@ sub with_sprintf {
 
 cmpthese(timethese(-1, {
     'compiler' => sub {
-        $compiler->to_string(@lt);
+        $compiler->to_string(localtime($t));
+    },
+    'compiler_strftime' => sub {
+        POSIX::strftime::Compiler::strftime($fmt, localtime($t));
     },
     'posix' => sub {
-        POSIX::strftime($fmt,@lt);
+        POSIX::strftime($fmt,localtime($t));
     },
 #    'compiler_wo_cache' => sub {
 #        my @t = localtime;
@@ -31,20 +33,22 @@ cmpthese(timethese(-1, {
         HTTP::Date::time2str($t);
     },
     'sprintf' => sub {
-        with_sprintf(@lt);
+        with_sprintf(localtime($t));
     },
 }));
 
 
 __END__
 % perl -Ilib eg/benchmark.pl   
-Benchmark: running compiler, http_date, posix, sprintf for at least 1 CPU seconds...
-  compiler:  2 wallclock secs ( 1.13 usr +  0.00 sys =  1.13 CPU) @ 507469.03/s (n=573440)
- http_date:  2 wallclock secs ( 1.21 usr +  0.01 sys =  1.22 CPU) @ 512762.30/s (n=625570)
-     posix:  2 wallclock secs ( 1.08 usr +  0.00 sys =  1.08 CPU) @ 245059.26/s (n=264664)
-   sprintf:  0 wallclock secs ( 1.07 usr +  0.00 sys =  1.07 CPU) @ 918728.97/s (n=983040)
-              Rate     posix  compiler http_date   sprintf
-posix     245059/s        --      -52%      -52%      -73%
-compiler  507469/s      107%        --       -1%      -45%
-http_date 512762/s      109%        1%        --      -44%
-sprintf   918729/s      275%       81%       79%        --
+Benchmark: running compiler, compiler_strftime, http_date, posix, sprintf for at least 1 CPU seconds...
+  compiler:  1 wallclock secs ( 1.12 usr +  0.00 sys =  1.12 CPU) @ 409600.00/s (n=458752)
+compiler_strftime:  1 wallclock secs ( 1.09 usr +  0.00 sys =  1.09 CPU) @ 371358.72/s (n=404781)
+ http_date:  1 wallclock secs ( 1.00 usr +  0.00 sys =  1.00 CPU) @ 573439.00/s (n=573439)
+     posix:  1 wallclock secs ( 1.13 usr +  0.00 sys =  1.13 CPU) @ 219298.23/s (n=247807)
+   sprintf:  0 wallclock secs ( 1.00 usr +  0.01 sys =  1.01 CPU) @ 567761.39/s (n=573439)
+                      Rate    posix compiler_strftime compiler sprintf http_date
+posix             219298/s       --              -41%     -46%    -61%      -62%
+compiler_strftime 371359/s      69%                --      -9%    -35%      -35%
+compiler          409600/s      87%               10%       --    -28%      -29%
+sprintf           567761/s     159%               53%      39%      --       -1%
+http_date         573439/s     161%               54%      40%      1%        --
