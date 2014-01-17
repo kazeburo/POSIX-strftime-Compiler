@@ -2,6 +2,11 @@ Revision history for Perl extension POSIX-strftime-Compiler
 
 {{$NEXT}}
 
+0.05 2014-01-17T06:03:45Z
+
+    - behave as POSIX::strftime wrapper.
+      faster than use POSIX::strftime with setlocale
+
 0.04 2014-01-15T15:19:20Z
 
     - suppress warnings in test
