@@ -9,5 +9,5 @@ use POSIX::strftime::Compiler;
 my $fmt = shift @ARGV || '%z';
 my @t = @ARGV ? localtime timelocal(@ARGV) : localtime;
 
-print POSIX::strftime::Compiler->new($fmt)->to_string(@t);
+print POSIX::strftime::Compiler::strftime($fmt,@t);
 

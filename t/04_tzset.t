@@ -3,7 +3,7 @@ use warnings;
 use Test::More;
 use POSIX;
 use Time::Local;
-use POSIX::strftime::Compiler;
+use POSIX::strftime::Compiler qw/strftime/;
 
 eval {
     POSIX::tzset;
@@ -23,8 +23,6 @@ my @timezones = (
     ['America/New_York','-0500', '-0400', '-0400', '-0500','EST','EDT','EDT','EST']
 );
 
-my $psc = POSIX::strftime::Compiler->new('%z');
-my $psc2 = POSIX::strftime::Compiler->new('%Z');
 for my $timezones (@timezones) {
     my ($timezone, @tz) = @$timezones;
     local $ENV{TZ} = $timezone;
@@ -34,9 +32,9 @@ for my $timezones (@timezones) {
         my $i=0;
         for my $date ( ([10,1,2013], [10,5,2013], [15,8,2013], [15,11,2013]) ) {
             my ($day,$month,$year) = @$date;
-            my $str = $psc->to_string(localtime(timelocal(0, 45, 12, $day, $month - 1, $year)));
+            my $str = strftime('%z',localtime(timelocal(0, 45, 12, $day, $month - 1, $year)));
             is $str, $tz[$i];
-            my $str2 = $psc2->to_string(localtime(timelocal(0, 45, 12, $day, $month - 1, $year)));
+            my $str2 = strftime('%Z',localtime(timelocal(0, 45, 12, $day, $month - 1, $year)));
             if ( ref $tz[$i+4] ) {
                 like $str2, $tz[$i+4], "$timezone / $year-$month-$day => $str2";
             }

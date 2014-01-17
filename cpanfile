@@ -1,6 +1,8 @@
 requires 'perl', '5.008001';
-requires 'Time::Local';
 requires 'Carp';
+requires 'Time::Local';
+requires 'POSIX';
+requires 'Exporter';
 
 on 'test' => sub {
     requires 'Test::More', '0.98';

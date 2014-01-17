@@ -79,10 +79,10 @@ $t[0] += 0.123456;
 
 foreach my $f (sort keys %format) {
     if ( ref $format{$f} ) {
-        like( POSIX::strftime::Compiler->new('%'.$f)->to_string(@t), $format{$f}, '%'.$f);
+        like( POSIX::strftime::Compiler::strftime('%'.$f,@t), $format{$f}, '%'.$f);
     }
     else {
-        is( POSIX::strftime::Compiler->new('%'.$f)->to_string(@t), $format{$f}, '%'.$f);
+        is( POSIX::strftime::Compiler::strftime('%'.$f,@t), $format{$f}, '%'.$f);
     }
 }
 done_testing();
