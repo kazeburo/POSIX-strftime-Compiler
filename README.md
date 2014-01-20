@@ -1,6 +1,6 @@
 # NAME
 
-POSIX::strftime::Compiler - strftime for loggers and servers
+POSIX::strftime::Compiler - GNU compatible strftime for loggers and servers
 
 # SYNOPSIS
 
@@ -14,12 +14,12 @@ POSIX::strftime::Compiler - strftime for loggers and servers
 
 # DESCRIPTION
 
-POSIX::strftime::Compiler wraps POSIX::strftime, but this module will not 
-affected by the system locale. Because this module does not use strftime(3). 
-This feature is useful when you want to write loggers, servers and portable applications.
+POSIX::strftime::Compiler provided GNU compatible strftime(3), but this module will not affected
+by the system locale.  This feature is useful when you want to write loggers, 
+servers and portable applications.
 
-For generate same result strings on any locale, POSIX::strftime::Compiler compiles 
-some format characters to perl code
+For generate same result strings on any locale, POSIX::strftime::Compiler wraps POSIX::strftime and 
+converts some format characters to perl code
 
 # FUNCTION
 
@@ -44,7 +44,7 @@ some format characters to perl code
 
 # FORMAT CHARACTERS
 
-POSIX::strftime::Compiler supports almost all characters that POSIX::strftime supports. 
+POSIX::strftime::Compiler supports almost all characters that GNU strftime(3) supports. 
 But `%E[cCxXyY]` and `%O[deHImMSuUVwWy]` are not supported, just remove E and O prefix.
 
 # PERFORMANCE ISSUES ON WINDOWS

@@ -2,6 +2,10 @@ Revision history for Perl extension POSIX-strftime-Compiler
 
 {{$NEXT}}
 
+0.06 2014-01-20T02:26:07Z
+
+    - add GNU compatibility for Windows
+
 0.05 2014-01-17T06:03:45Z
 
     - behave as POSIX::strftime wrapper.
