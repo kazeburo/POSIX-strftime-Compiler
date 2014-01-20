@@ -18,6 +18,7 @@ my %format = (
     A      => 'Sunday',
     b      => 'Jul',
     B      => 'July',
+    c      => 'Sun Jul  6 21:03:54 2008',
     C      => '20',
     d      => '06',
     D      => '07/06/08',

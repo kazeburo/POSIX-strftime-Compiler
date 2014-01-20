@@ -21,6 +21,9 @@ use constant {
     WDAY => 6,
     YDAY => 7,
     ISDST => 8,
+    ISO_WEEK_START_WDAY => 1,  # Monday
+    ISO_WEEK1_WDAY      => 4,  # Thursday
+    YDAY_MINIMUM        => -366,
 };
 
 BEGIN {
@@ -29,24 +32,12 @@ BEGIN {
 
     if (eval { require POSIX::strftime::GNU::XS; 1; }) {
         no warnings 'redefine';
-        if ( POSIX::strftime::GNU::XS::strftime("%z", localtime) =~ /^[+-]\d{4}$/) {
+        if ( POSIX::strftime::GNU::XS::strftime('%z', localtime) =~ /^[+-]\d{4}$/) {
             *tzoffset = sub { POSIX::strftime::GNU::XS::strftime("%z", @_) };
         }
-        if ( length POSIX::strftime::GNU::XS::strftime("%Z", localtime) ) {
+        if ( length POSIX::strftime::GNU::XS::strftime('%Z', localtime) ) {
             *tzname = sub { POSIX::strftime::GNU::XS::strftime("%Z", @_) };
         }
-    }
-
-    if ( POSIX::strftime("%z", localtime) =~ /^[+-]\d{4}$/) {
-        *_has_strftime_offset = sub () { !! 1 };
-    } else {
-        *_has_strftime_offset = sub () { !! 0 };
-    }
-
-    if ( POSIX::strftime("%Z", localtime) =~ /^\w{2,}$/) {
-        *_has_strftime_zonename = sub () { !! 1 };
-    } else {
-        *_has_strftime_zonename = sub () { !! 0 };
     }
 }
 
@@ -120,9 +111,15 @@ my @offset2zone = qw(
 );
 
 sub _tzoffset {
-    my @g = gmtime(Time::Local::timelocal(@_));
-    my $min = ($_[2] - $g[2] + ((($_[5]<<9)|$_[7]) <=> (($g[5]<<9)|$g[7])) * 24) * 60 + $_[1] - $g[1];
-    sprintf '%+03d%02u', $min/60, $min%60;
+    my @t = @_;
+
+    # Normalize @t array, we need seconds without frac
+    $t[SEC] = int $t[SEC];
+
+    my $diff = (exists $ENV{TZ} and $ENV{TZ} eq 'GMT')
+             ? 0
+             : Time::Local::timegm(@t) - Time::Local::timelocal(@t);
+    sprintf '%+03d%02u', $diff/60/60, $diff/60%60;
 }
 
 sub _tzname {
@@ -157,29 +154,101 @@ sub _tzname {
     return 'Etc';
 }
 
+sub iso_week_days {
+    my ($yday, $wday) = @_;
+
+    # Add enough to the first operand of % to make it nonnegative.
+    my $big_enough_multiple_of_7 = (int(- YDAY_MINIMUM / 7) + 2) * 7;
+    return ($yday
+        - ($yday - $wday + ISO_WEEK1_WDAY + $big_enough_multiple_of_7) % 7
+        + ISO_WEEK1_WDAY - ISO_WEEK_START_WDAY);
+}
+
+sub isleap {
+    my $year = shift;
+    return ($year % 4 == 0 && ($year % 100 != 0 || $year % 400 == 0)) ? 1 : 0
+}
+
+sub isodaysnum {
+    my @t = @_;
+
+    # Normalize @t array, we need WDAY
+    $t[SEC] = int $t[SEC];
+    @t = gmtime Time::Local::timegm(@t);
+
+    my $year = ($t[YEAR] + ($t[YEAR] < 0 ? 1900 % 400 : 1900 % 400 - 400));
+    my $year_adjust = 0;
+    my $days = iso_week_days($t[YDAY], $t[WDAY]);
+
+    if ($days < 0) {
+        # This ISO week belongs to the previous year.
+        $year_adjust = -1;
+        $days = iso_week_days($t[YDAY] + (365 + isleap($year -1)), $t[WDAY]);
+    }
+    else {
+        my $d = iso_week_days($t[YDAY] - (365 + isleap($year)), $t[WDAY]);
+        if ($d >= 0) {
+            # This ISO week belongs to the next year.  */
+            $year_adjust = 1;
+            $days = $d;
+        }
+    }
+
+    return ($days, $year_adjust);
+}
+
+sub isoyearnum {
+    my ($days, $year_adjust) = isodaysnum(@_);
+    return $_[YEAR] + 1900 + $year_adjust;
+}
+
+sub isoweeknum {
+    my ($days, $year_adjust) = isodaysnum(@_);
+    return int($days / 7) + 1;
+}
+
+sub first_day_wday {
+    my $year = shift;
+    (gmtime( Time::Local::timegm((0,0,0,1,0,$year)) ))[WDAY];
+}
+
 our %rules = (
+    '%' => [q!'%'!],
     'a' => [q!$weekday_abbr[$_[WDAY]]!],
     'A' => [q!$weekday_name[$_[WDAY]]!],
     'b' => [q!$month_abbr[$_[MONTH]]!],
     'B' => [q!$month_name[$_[MONTH]]!],
-    'c' => [q!sprintf('%s %s %2d %02d:%02d:%02d %04d',$weekday_abbr[$_[WDAY]], $month_abbr[$_[MONTH]], $_[DAY], $_[HOUR], $_[MIN], $_[SEC], $_[YEAR]+1900)!],
+    'c' => [q!$weekday_abbr[$_[WDAY]] . ' ' . $month_abbr[$_[MONTH]] . ' ' . substr(' '.$_[DAY],-2) . ' %H:%M:%S %Y'!],
+    'C' => [q!substr('0'.int(($_[YEAR]+1900)/100), -2)!],  #century
     'h' => [q!$month_abbr[$_[MONTH]]!],
     'N' => [q!substr(sprintf('%.9f', $_[SEC] - int $_[SEC]), 2)!],
+    'n' => [q!"\n"!],
     'p' => [q!$_[HOUR] > 0 && $_[HOUR] < 13 ? "AM" : "PM"!],
     'P' => [q!$_[HOUR] > 0 && $_[HOUR] < 13 ? "am" : "pm"!],
     'r' => [q!sprintf('%02d:%02d:%02d %s',$_[HOUR]%12 || 1, $_[MIN], $_[SEC], $_[HOUR] > 0 && $_[HOUR] < 13 ? "AM" : "PM")!],
-    'x' => [q!sprintf('%02d/%02d/%02d',$_[MONTH]+1,$_[DAY],$_[YEAR]%100)!],
-    'X' => [q!sprintf('%02d:%02d:%02d',$_[HOUR], $_[MIN], $_[SEC])!],
-    'z' => [q!tzoffset(@_)!],
-    'Z' => [q!tzname(@_)!],
+    't' => [q!"\t"!],
+    'x' => [q!'%m/%d/%y'!],
+    'X' => [q!'%H:%M:%S'!],
 );
 
-if ( _has_strftime_offset ) {
-    delete $rules{z};
-}
-
-if ( _has_strftime_zonename ) {
-    delete $rules{Z};
+if ( $^O eq 'MSWin32' || $^O eq 'Cygwin' ) {
+    %rules = (
+        %rules,
+        'D' => [q!'%m/%d/%y'!],
+        'F' => [q!'%Y-%m-%d'!],
+        'G' => [q!substr('0000'. isoyearnum(@_), -4)!],
+        'R' => [q!'%H:%M'!],
+        'T' => [q!'%H:%M:%S'!],
+        'V' => [q!substr('0'.isoweeknum(@_),-2)!],
+        'e' => [q!substr(' '.$_[DAY],-2)!],
+        'g' => [q!substr('0'.isoyearnum(@_)%100,-2)!],
+        'k' => [q!substr(' '.$_[HOUR],-2)!],
+        'l' => [q!substr(' '.($_[HOUR]%12 || 1),-2)!],
+        's' => [q!int(Time::Local::timegm(@_))!],
+        'u' => [q!$_[WDAY] || 7!],
+        'z' => [q!tzoffset(@_)!],
+        'Z' => [q!tzname(@_)!],
+    );
 }
 
 my $char_handler = sub {
@@ -213,7 +282,7 @@ sub compile {
         POSIX::strftime(q!~ . $fmt . q~!,@_);
     }~;
     my $sub = eval $fmt; ## no critic
-    die $@ if $@;
+    die $@ ."\n===\n".$fmt if $@;
     wantarray ? ($sub,$fmt) : $sub;
 }
 
@@ -243,7 +312,7 @@ __END__
 
 =head1 NAME
 
-POSIX::strftime::Compiler - strftime for loggers and servers
+POSIX::strftime::Compiler - GNU compatible strftime for loggers and servers
 
 =head1 SYNOPSIS
 
@@ -256,12 +325,12 @@ POSIX::strftime::Compiler - strftime for loggers and servers
 
 =head1 DESCRIPTION
 
-POSIX::strftime::Compiler wraps POSIX::strftime, but this module will not 
-affected by the system locale. Because this module does not use strftime(3). 
-This feature is useful when you want to write loggers, servers and portable applications.
+POSIX::strftime::Compiler provided GNU compatible strftime(3), but this module will not affected
+by the system locale.  This feature is useful when you want to write loggers, 
+servers and portable applications.
 
-For generate same result strings on any locale, POSIX::strftime::Compiler compiles 
-some format characters to perl code
+For generate same result strings on any locale, POSIX::strftime::Compiler wraps POSIX::strftime and 
+converts some format characters to perl code
 
 =head1 FUNCTION
 
@@ -294,7 +363,7 @@ Generate formatted string from time.
 
 =head1 FORMAT CHARACTERS
 
-POSIX::strftime::Compiler supports almost all characters that POSIX::strftime supports. 
+POSIX::strftime::Compiler supports almost all characters that GNU strftime(3) supports. 
 But C<%E[cCxXyY]> and C<%O[deHImMSuUVwWy]> are not supported, just remove E and O prefix.
 
 =head1 PERFORMANCE ISSUES ON WINDOWS
