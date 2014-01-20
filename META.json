@@ -1,5 +1,5 @@
 {
-   "abstract" : "GNU compatible strftime for loggers and servers",
+   "abstract" : "GNU C library compatible strftime for loggers and servers",
    "author" : [
       "Masahiro Nagano <kazeburo@gmail.com>"
    ],

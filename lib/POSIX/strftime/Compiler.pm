@@ -207,11 +207,6 @@ sub isoweeknum {
     return int($days / 7) + 1;
 }
 
-sub first_day_wday {
-    my $year = shift;
-    (gmtime( Time::Local::timegm((0,0,0,1,0,$year)) ))[WDAY];
-}
-
 our %rules = (
     '%' => [q!'%'!],
     'a' => [q!$weekday_abbr[$_[WDAY]]!],
@@ -261,6 +256,7 @@ my $char_handler = sub {
 sub compile {
     my ($fmt) = @_;
 
+    $fmt =~ s/!/\\!/g;
     my $rule_chars = join "", keys %rules;
     $fmt =~ s!\%E([cCxXyY])!%$1!g;
     $fmt =~ s!\%O([deHImMSuUVwWy])!%$1!g;
@@ -277,7 +273,7 @@ sub compile {
 
     $fmt = q~sub {
         if ( @_ != 9  && @_ != 6 ) {
-            Carp::croak 'Usage: to_string(sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)';
+            Carp::croak 'Usage: strftime(sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)';
         }
         POSIX::strftime(q!~ . $fmt . q~!,@_);
     }~;
@@ -305,6 +301,11 @@ sub to_string {
     $self->[0]->(@_);
 }
 
+sub code_ref {
+    my $self = shift;
+    $self->[0];
+}
+
 1;
 __END__
 
@@ -312,7 +313,7 @@ __END__
 
 =head1 NAME
 
-POSIX::strftime::Compiler - GNU compatible strftime for loggers and servers
+POSIX::strftime::Compiler - GNU C library compatible strftime for loggers and servers
 
 =head1 SYNOPSIS
 
@@ -325,9 +326,8 @@ POSIX::strftime::Compiler - GNU compatible strftime for loggers and servers
 
 =head1 DESCRIPTION
 
-POSIX::strftime::Compiler provided GNU compatible strftime(3), but this module will not affected
-by the system locale.  This feature is useful when you want to write loggers, 
-servers and portable applications.
+POSIX::strftime::Compiler provides GNU C library compatible strftime(3). But this module will not affected
+by the system locale.  This feature is useful when you want to write loggers, servers and portable applications.
 
 For generate same result strings on any locale, POSIX::strftime::Compiler wraps POSIX::strftime and 
 converts some format characters to perl code
