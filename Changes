@@ -2,6 +2,12 @@ Revision history for Perl extension POSIX-strftime-Compiler
 
 {{$NEXT}}
 
+0.10 2014-01-21T01:41:51Z
+
+    - release as non-trial version
+    - use sprintf if format only has simple characters
+    - add benchmark_tz.pl
+
 0.06 2014-01-20T02:26:07Z
 
     - add GNU compatibility for Windows
