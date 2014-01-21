@@ -172,9 +172,8 @@ sub isleap {
 sub isodaysnum {
     my @t = @_;
 
-    # Normalize @t array, we need WDAY
+    # Normalize @t array
     $t[SEC] = int $t[SEC];
-    @t = gmtime Time::Local::timegm(@t);
 
     my $year = ($t[YEAR] + ($t[YEAR] < 0 ? 1900 % 400 : 1900 % 400 - 400));
     my $year_adjust = 0;
@@ -207,13 +206,51 @@ sub isoweeknum {
     return int($days / 7) + 1;
 }
 
+our %sprintf_rules = (
+    '%' => [q!%s!, q!%!],
+    'a' => [q!%s!, q!$weekday_abbr[$_[WDAY]]!],
+    'A' => [q!%s!, q!$weekday_name[$_[WDAY]]!],
+    'b' => [q!%s!, q!$month_abbr[$_[MONTH]]!],
+    'B' => [q!%s!, q!$month_name[$_[MONTH]]!],
+    'c' => [q!%s %s %2d %02d:%02d:%02d %04d!, q!$weekday_abbr[$_[WDAY]], $month_abbr[$_[MONTH]], $_[DAY], $_[HOUR], $_[MIN], $_[SEC], $_[YEAR]+1900!],
+    'C' => [q!%02d!, q!($_[YEAR]+1900)/100!],
+    'd' => [q!%02d!, q!$_[DAY]!],
+    'D' => [q!%02d/%02d/%02d!, q!$_[MONTH]+1,$_[DAY],$_[YEAR]%100!],
+    'e' => [q!%2d!, q!$_[DAY]!],
+    'F' => [q!%04d-%02d-%02d!, q!$_[YEAR]+1900,$_[MONTH]+1,$_[DAY]!],
+    'h' => [q!%s!, q!$month_abbr[$_[MONTH]]!],
+    'H' => [q!%02d!, q!$_[HOUR]!],
+    'I' => [q!%02d!, q!$_[HOUR]%12 || 1!],
+    'j' => [q!%03d!, q!$_[YDAY]+1!],
+    'k' => [q!%2d!, q!$_[HOUR]!],
+    'l' => [q!%2d!, q!$_[HOUR]%12 || 1!],
+    'm' => [q!%02d!, q!$_[MONTH]+1!],
+    'M' => [q!%02d!, q!$_[MIN]!],
+    'n' => [q!%s!, q!"\n"!],
+    'N' => [q!%s!, q!substr(sprintf('%.9f', $_[SEC] - int $_[SEC]), 2)!],
+    'p' => [q!%s!, q!$_[HOUR] > 0 && $_[HOUR] < 13 ? "AM" : "PM"!],
+    'P' => [q!%s!, q!$_[HOUR] > 0 && $_[HOUR] < 13 ? "am" : "pm"!],
+    'r' => [q!%02d:%02d:%02d %s!, q!$_[HOUR]%12 || 1, $_[MIN], $_[SEC], $_[HOUR] > 0 && $_[HOUR] < 13 ? "AM" : "PM"!],
+    'R' => [q!%02d:%02d!, q!$_[HOUR], $_[MIN]!],
+    'S' => [q!%02d!, q!$_[SEC]!],
+    't' => [q!%s!, q!"\t"!],
+    'T' => [q!%02d:%02d:%02d!, q!$_[HOUR], $_[MIN], $_[SEC]!],
+    'u' => [q!%d!, q!$_[WDAY] || 7!],
+    'w' => [q!%d!, q!$_[WDAY]!],
+    'x' => [q!%02d/%02d/%02d!, q!$_[MONTH]+1,$_[DAY],$_[YEAR]%100!],
+    'X' => [q!%02d:%02d:%02d!, q!$_[HOUR], $_[MIN], $_[SEC]!],
+    'y' => [q!%02d!, q!$_[YEAR]%100!],
+    'Y' => [q!%02d!, q!$_[YEAR]+1900!],
+    '%' => [q!%s!, q!'%'!],
+);
+
 our %rules = (
     '%' => [q!'%'!],
-    'a' => [q!$weekday_abbr[$_[WDAY]]!],
-    'A' => [q!$weekday_name[$_[WDAY]]!],
+    'a' => [q!$weekday_abbr[$_[WDAY]]!,1],
+    'A' => [q!$weekday_name[$_[WDAY]]!,1],
     'b' => [q!$month_abbr[$_[MONTH]]!],
     'B' => [q!$month_name[$_[MONTH]]!],
-    'c' => [q!$weekday_abbr[$_[WDAY]] . ' ' . $month_abbr[$_[MONTH]] . ' ' . substr(' '.$_[DAY],-2) . ' %H:%M:%S %Y'!],
+    'c' => [q!$weekday_abbr[$_[WDAY]] . ' ' . $month_abbr[$_[MONTH]] . ' ' . substr(' '.$_[DAY],-2) . ' %H:%M:%S %Y'!,1],
     'C' => [q!substr('0'.int(($_[YEAR]+1900)/100), -2)!],  #century
     'h' => [q!$month_abbr[$_[MONTH]]!],
     'N' => [q!substr(sprintf('%.9f', $_[SEC] - int $_[SEC]), 2)!],
@@ -224,6 +261,7 @@ our %rules = (
     't' => [q!"\t"!],
     'x' => [q!'%m/%d/%y'!],
     'X' => [q!'%H:%M:%S'!],
+    'z' => [q!'%z'!,1],
 );
 
 if ( $^O eq 'MSWin32' || $^O eq 'Cygwin' ) {
@@ -231,55 +269,97 @@ if ( $^O eq 'MSWin32' || $^O eq 'Cygwin' ) {
         %rules,
         'D' => [q!'%m/%d/%y'!],
         'F' => [q!'%Y-%m-%d'!],
-        'G' => [q!substr('0000'. isoyearnum(@_), -4)!],
+        'G' => [q!substr('0000'. isoyearnum(@_), -4)!,1],
         'R' => [q!'%H:%M'!],
         'T' => [q!'%H:%M:%S'!],
-        'V' => [q!substr('0'.isoweeknum(@_),-2)!],
+        'V' => [q!substr('0'.isoweeknum(@_),-2)!,1],
         'e' => [q!substr(' '.$_[DAY],-2)!],
-        'g' => [q!substr('0'.isoyearnum(@_)%100,-2)!],
+        'g' => [q!substr('0'.isoyearnum(@_)%100,-2)!,1],
         'k' => [q!substr(' '.$_[HOUR],-2)!],
         'l' => [q!substr(' '.($_[HOUR]%12 || 1),-2)!],
-        's' => [q!int(Time::Local::timegm(@_))!],
-        'u' => [q!$_[WDAY] || 7!],
-        'z' => [q!tzoffset(@_)!],
-        'Z' => [q!tzname(@_)!],
+        's' => [q!int(Time::Local::timegm(@_))!,1],
+        'u' => [q!$_[WDAY] || 7!,1],
+        'z' => [q!tzoffset(@_)!,1],
+        'Z' => [q!tzname(@_)!,1],
     );
 }
 
+my $sprintf_char_handler = sub {
+    my ($char,$args) = @_;
+    die unless exists $sprintf_rules{$char};
+    my ($format, $code) = @{$sprintf_rules{$char}};
+    push @$args, $code;
+    return $format;
+};
+
 my $char_handler = sub {
-    my ($char) = @_;
+    my ($char,$need9char_ref) = @_;
     die unless exists $rules{$char};
-    my ($code) = @{$rules{$char}};
+    my ($code,$flag) = @{$rules{$char}};
+    $$need9char_ref++ if $flag;
     q|! . | . $code . q| . q!|;
 };
 
 sub compile {
     my ($fmt) = @_;
 
-    $fmt =~ s/!/\\!/g;
-    my $rule_chars = join "", keys %rules;
-    $fmt =~ s!\%E([cCxXyY])!%$1!g;
-    $fmt =~ s!\%O([deHImMSuUVwWy])!%$1!g;
-    $fmt =~ s!
-        (?:
-             \%([$rule_chars])
-        )
-    ! $char_handler->($1) !egx;
-
     my @weekday_name = qw(Sunday Monday Tuesday Wednesday Thursday Friday Saturday);
     my @weekday_abbr = qw(Sun Mon Tue Wed Thu Fri Sat);
     my @month_name = qw(January February March April May June July August September October November December);
     my @month_abbr = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
 
-    $fmt = q~sub {
+    $fmt =~ s/!/\\!/g;
+    $fmt =~ s!\%E([cCxXyY])!%$1!g;
+    $fmt =~ s!\%O([deHImMSuUVwWy])!%$1!g;
+
+    my $sprintf_fmt = $fmt;
+    my $disable_sprintf=0;
+    my $sprintf_code = '';
+    while ( $sprintf_fmt =~ m~ (?:\%([\%\+a-zA-Z])) ~gx ) {
+        if ( ! exists $sprintf_rules{$1} ) {
+            $disable_sprintf++
+        }
+    }
+    if ( !$disable_sprintf ) {
+        my $rule_chars = join "", keys %sprintf_rules;
+        my @args;
+        $sprintf_fmt =~ s!
+            (?:
+                 \%([$rule_chars])
+            )
+        ! $sprintf_char_handler->($1,\@args) !egx;
+        $sprintf_code = q~if ( @_ == 9 ) {
+            return sprintf(q!~ . $sprintf_fmt .  q~!,~ . join(",", @args) . q~);
+        }~;
+    }
+
+    my $posix_fmt = $fmt;
+    my $rule_chars = join "", keys %rules;
+    my $need9char=0;
+    $posix_fmt =~ s!
+        (?:
+             \%([$rule_chars])
+        )
+    ! $char_handler->($1,\$need9char) !egx;
+    
+    my $need9char_code='';
+    if ( $need9char ) {
+        $need9char_code = q~if ( @_ == 6 ) {
+          @_ = gmtime Time::Local::timegm(@_);
+        }~;
+    }
+
+    my $code = q~sub {
         if ( @_ != 9  && @_ != 6 ) {
             Carp::croak 'Usage: strftime(sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)';
         }
-        POSIX::strftime(q!~ . $fmt . q~!,@_);
+        ~ . $sprintf_code . q~
+        ~ . $need9char_code . q~
+        POSIX::strftime(q!~ . $posix_fmt . q~!,@_);
     }~;
-    my $sub = eval $fmt; ## no critic
-    die $@ ."\n===\n".$fmt if $@;
-    wantarray ? ($sub,$fmt) : $sub;
+    my $sub = eval $code; ## no critic
+    die $@ ."\n===\n".$code if $@;
+    wantarray ? ($sub,$code) : $sub;
 }
 
 my %STRFTIME;

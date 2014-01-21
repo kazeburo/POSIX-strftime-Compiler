@@ -2,14 +2,15 @@ use Benchmark qw/:all/;
 use POSIX qw//;
 use POSIX::strftime::Compiler;
 
-my $fmt = '%d/%b/%Y:%T';
+my $fmt = '%d/%b/%Y:%T %z';
 
 my @abbr = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
 my $t = time;
 
 sub with_sprintf {
-    sprintf '%02d/%s/%04d:%02d:%02d:%02d', $_[3], $abbr[$_[4]], $_[5]+1900, 
-        $_[2], $_[1], $_[0];
+    my $tz = POSIX::strftime('%z',@_);
+    sprintf '%02d/%s/%04d:%02d:%02d:%02d %s', $_[3], $abbr[$_[4]], $_[5]+1900, 
+        $_[2], $_[1], $_[0], $tz;
 }
 my $psc = POSIX::strftime::Compiler->new($fmt);
 cmpthese(timethese(-1, {
@@ -36,13 +37,12 @@ cmpthese(timethese(-1, {
 
 
 __END__
-Benchmark: running compiler, compiler_function, posix_and_locale, sprintf for at least 1 CPU seconds...
-  compiler:  2 wallclock secs ( 1.01 usr +  0.00 sys =  1.01 CPU) @ 454208.91/s (n=458751)
-compiler_function:  2 wallclock secs ( 1.14 usr +  0.00 sys =  1.14 CPU) @ 431157.02/s (n=491519)
-posix_and_locale:  1 wallclock secs ( 1.11 usr +  0.00 sys =  1.11 CPU) @ 70446.85/s (n=78196)
-   sprintf:  1 wallclock secs ( 1.06 usr +  0.00 sys =  1.06 CPU) @ 618264.15/s (n=655360)
+compiler_function:  1 wallclock secs ( 1.04 usr +  0.00 sys =  1.04 CPU) @ 183794.23/s (n=191146)
+posix_and_locale:  1 wallclock secs ( 1.05 usr +  0.00 sys =  1.05 CPU) @ 68265.71/s (n=71679)
+   sprintf:  1 wallclock secs ( 1.03 usr +  0.00 sys =  1.03 CPU) @ 208775.73/s (n=215039)
                       Rate posix_and_locale compiler_function compiler   sprintf
-posix_and_locale   70447/s               --              -84%     -84%      -89%
-compiler_function 431157/s             512%                --      -5%      -30%
-compiler          454209/s             545%                5%       --      -27%
-sprintf           618264/s             778%               43%      36%        --
+posix_and_locale   68266/s               --              -63%     -64%      -67%
+compiler_function 183794/s             169%                --      -3%      -12%
+compiler          189253/s             177%                3%       --       -9%
+sprintf           208776/s             206%               14%      10%        --
+

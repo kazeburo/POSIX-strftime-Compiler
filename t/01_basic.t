@@ -86,6 +86,16 @@ foreach my $f (sort keys %format) {
         is( POSIX::strftime::Compiler::strftime('%'.$f,@t), $format{$f}, '%'.$f);
     }
 }
+
+foreach my $f (sort keys %format) {
+    if ( ref $format{$f} ) {
+        like( POSIX::strftime::Compiler::strftime('%'.$f,(54.123456, 3, 21, 6, 6, 108)), $format{$f}, '%'.$f.'=6');
+    }
+    else {
+        is( POSIX::strftime::Compiler::strftime('%'.$f,(54.123456, 3, 21, 6, 6, 108)), $format{$f}, '%'.$f. '=6');
+    }
+}
+
 done_testing();
 
 
