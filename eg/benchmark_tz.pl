@@ -1,6 +1,7 @@
 use Benchmark qw/:all/;
 use POSIX qw//;
 use POSIX::strftime::Compiler;
+use Time::TZOffset;
 
 my $fmt = '%d/%b/%Y:%T %z';
 
@@ -8,10 +9,10 @@ my @abbr = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
 my $t = time;
 
 sub with_sprintf {
-    my $tz = POSIX::strftime('%z',@_);
     sprintf '%02d/%s/%04d:%02d:%02d:%02d %s', $_[3], $abbr[$_[4]], $_[5]+1900, 
-        $_[2], $_[1], $_[0], $tz;
+        $_[2], $_[1], $_[0], Time::TZOffset::tzoffset(@_);
 }
+
 my $psc = POSIX::strftime::Compiler->new($fmt);
 cmpthese(timethese(-1, {
     'compiler' => sub {

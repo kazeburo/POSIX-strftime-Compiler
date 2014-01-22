@@ -48,6 +48,9 @@
             "POSIX" : "0",
             "Time::Local" : "0",
             "perl" : "5.008004"
+         },
+         "suggests" : {
+            "Time::TZOffset" : "0"
          }
       },
       "test" : {

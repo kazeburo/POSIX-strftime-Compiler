@@ -30,14 +30,9 @@ BEGIN {
     *tzoffset = \&_tzoffset;
     *tzname = \&_tzname;
 
-    if (eval { require POSIX::strftime::GNU::XS; 1; }) {
+    if (eval { require Time::TZOffset; 1; }) {
         no warnings 'redefine';
-        if ( POSIX::strftime::GNU::XS::strftime('%z', localtime) =~ /^[+-]\d{4}$/) {
-            *tzoffset = sub { POSIX::strftime::GNU::XS::strftime("%z", @_) };
-        }
-        if ( length POSIX::strftime::GNU::XS::strftime('%Z', localtime) ) {
-            *tzname = sub { POSIX::strftime::GNU::XS::strftime("%Z", @_) };
-        }
+        *tzoffset = \&Time::TZOffset::tzoffset;
     }
 }
 
@@ -244,6 +239,10 @@ our %sprintf_rules = (
     '%' => [q!%s!, q!'%'!],
 );
 
+if ( eval { require Time::TZOffset; 1 } ) {
+    $sprintf_rules{z} = [q!%s!,q!Time::TZOffset::tzoffset(@_)!];
+}
+
 our %rules = (
     '%' => [q!'%'!],
     'a' => [q!$weekday_abbr[$_[WDAY]]!,1],
@@ -277,7 +276,7 @@ if ( $^O eq 'MSWin32' || $^O eq 'Cygwin' ) {
         'g' => [q!substr('0'.isoyearnum(@_)%100,-2)!,1],
         'k' => [q!substr(' '.$_[HOUR],-2)!],
         'l' => [q!substr(' '.($_[HOUR]%12 || 1),-2)!],
-        's' => [q!int(Time::Local::timegm(@_))!,1],
+        's' => [q!Time::Local::timegm(int($_[0]),@_[1..($#_)])!,1],
         'u' => [q!$_[WDAY] || 7!,1],
         'z' => [q!tzoffset(@_)!,1],
         'Z' => [q!tzname(@_)!,1],
@@ -345,7 +344,9 @@ sub compile {
     my $need9char_code='';
     if ( $need9char ) {
         $need9char_code = q~if ( @_ == 6 ) {
-          @_ = gmtime Time::Local::timegm(@_);
+          my $sec = $_[0];
+          @_ = gmtime Time::Local::timegm(int($sec),@_[1..5]);
+          $_[0] = $sec;
         }~;
     }
 
@@ -355,7 +356,7 @@ sub compile {
         }
         ~ . $sprintf_code . q~
         ~ . $need9char_code . q~
-        POSIX::strftime(q!~ . $posix_fmt . q~!,@_);
+        POSIX::strftime(q!~ . $posix_fmt . q~!,int($_[0]),@_[1..($#_)]);
     }~;
     my $sub = eval $code; ## no critic
     die $@ ."\n===\n".$code if $@;
@@ -446,11 +447,22 @@ Generate formatted string from time.
 POSIX::strftime::Compiler supports almost all characters that GNU strftime(3) supports. 
 But C<%E[cCxXyY]> and C<%O[deHImMSuUVwWy]> are not supported, just remove E and O prefix.
 
+=head1 A RECOMMEND MODULE
+
+=over
+
+=item L<Time::TZOffset>
+
+If L<Time::TZOffset> is available, P::s::Compiler use it for more faster time zone offset calculation.
+I strongly recommend you to install this.
+
+=back
+
 =head1 PERFORMANCE ISSUES ON WINDOWS
 
 Windows and Cygwin and some system may not support C<%z> and C<%Z>. For these system, 
 POSIX::strftime::Compiler calculate time zone offset and find zone name. This is not fast.
-If you need performance on Windows and Cygwin, please install L<POSIX::strftime::GNU>
+If you need performance on Windows and Cygwin, please install L<Time::TZOffset>
 
 =head1 SEE ALSO
 

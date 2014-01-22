@@ -25,6 +25,9 @@ cmpthese(timethese(-1, {
         POSIX::strftime($fmt,localtime($t));
         POSIX::setlocale(&POSIX::LC_ALL, $old_locale);
     },
+#    'posix' => sub {
+#        POSIX::strftime($fmt,localtime($t));
+#    },
 #    'compiler_wo_cache' => sub {
 #        my $compiler2 = POSIX::strftime::Compiler->new($fmt);
 #        $compiler2->to_string(localtime($t));
