@@ -86,15 +86,20 @@ foreach my $f (sort keys %format) {
     }
     else {
         is( POSIX::strftime::Compiler::strftime('%'.$f,@t), $format{$f}, '%'.$f);
+        is( POSIX::strftime::Compiler::strftime('%'.$f.'foo',@t), $format{$f}.'foo', '%'.$f);
+        is( POSIX::strftime::Compiler::strftime('%'.$f.' foo',@t), $format{$f}.' foo', '%'.$f);
     }
 }
 
+@t = (54.123456, 3, 21, 6, 6, 108);
 foreach my $f (sort keys %format) {
     if ( ref $format{$f} ) {
-        like( POSIX::strftime::Compiler::strftime('%'.$f,(54.123456, 3, 21, 6, 6, 108)), $format{$f}, '%'.$f.'=6');
+        like( POSIX::strftime::Compiler::strftime('%'.$f,@t), $format{$f}, '%'.$f.'=6');
     }
     else {
-        is( POSIX::strftime::Compiler::strftime('%'.$f,(54.123456, 3, 21, 6, 6, 108)), $format{$f}, '%'.$f. '=6');
+        is( POSIX::strftime::Compiler::strftime('%'.$f,@t), $format{$f}, '%'.$f. '=6');
+        is( POSIX::strftime::Compiler::strftime('%'.$f.'foo',@t), $format{$f}.'foo', '%'.$f.'foo=6');
+        is( POSIX::strftime::Compiler::strftime('%'.$f.' foo',@t), $format{$f}.' foo', '%'.$f.' foo=6');
     }
 }
 
