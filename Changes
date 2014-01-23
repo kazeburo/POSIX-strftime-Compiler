@@ -2,6 +2,10 @@ Revision history for Perl extension POSIX-strftime-Compiler
 
 {{$NEXT}}
 
+0.12 2014-01-23T08:21:39Z
+
+    - fix bug around %s on windows. require "(" ")"
+
 0.11 2014-01-23T06:18:58Z
 
     - Escape unkown characters with '%%'
