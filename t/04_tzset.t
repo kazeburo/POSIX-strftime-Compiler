@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
-use POSIX;
+use POSIX qw//;
 use Time::Local;
 use POSIX::strftime::Compiler qw/strftime/;
 
