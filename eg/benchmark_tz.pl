@@ -7,6 +7,7 @@ my $fmt = '%d/%b/%Y:%T %z';
 
 my @abbr = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
 my $t = time;
+my @lt = localtime($t);
 
 sub with_sprintf {
     sprintf '%02d/%s/%04d:%02d:%02d:%02d %s', $_[3], $abbr[$_[4]], $_[5]+1900, 
@@ -16,15 +17,18 @@ sub with_sprintf {
 my $psc = POSIX::strftime::Compiler->new($fmt);
 cmpthese(timethese(-1, {
     'compiler' => sub {
-        $psc->to_string(localtime($t));
+        $psc->to_string(@lt);
     },
     'compiler_function' => sub {
-        POSIX::strftime::Compiler::strftime($fmt, localtime($t));
+        POSIX::strftime::Compiler::strftime($fmt, @lt);
+    },
+    'posix' => sub {
+        POSIX::strftime($fmt,@lt);
     },
     'posix_and_locale' => sub {
         my $old_locale = POSIX::setlocale(&POSIX::LC_ALL);
         POSIX::setlocale(&POSIX::LC_ALL, 'C');
-        POSIX::strftime($fmt,localtime($t));
+        POSIX::strftime($fmt,@lt);
         POSIX::setlocale(&POSIX::LC_ALL, $old_locale);
     },
 #    'compiler_wo_cache' => sub {
@@ -32,7 +36,7 @@ cmpthese(timethese(-1, {
 #        $compiler2->to_string(localtime($t));
 #    },
     'sprintf' => sub {
-        with_sprintf(localtime($t));
+        with_sprintf(@lt);
     },
 }));
 

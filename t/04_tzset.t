@@ -18,7 +18,7 @@ my @timezones = (
     ['Australia/Darwin','+0930','+0930','+0930','+0930','CST','CST','CST','CST' ],
     ['Asia/Tokyo', '+0900','+0900','+0900','+0900', 'JST','JST','JST','JST'],
     ['UTC', '+0000','+0000','+0000','+0000','UTC','UTC','UTC','UTC'],
-    ['Europe/London', '+0000','+0100','+0100','+0000','GMT','BST','BST','GMT'],
+    ['Europe/London', '+0000','+0100','+0100','+0000',qr/(GMT|WET)/,qr/(BST|WEST)/,qr/(BST|WEST)/,qr/(GMT|WET|)/],
     ['Europe/Paris', '+0100','+0200','+0200','+0100','CET','CEST','CEST','CET'],
     ['America/New_York','-0500', '-0400', '-0400', '-0500','EST','EDT','EDT','EST']
 );
@@ -41,6 +41,17 @@ for my $timezones (@timezones) {
             else {
                 is $str2, $tz[$i+4], "$timezone / $year-$month-$day => $str2";
             }
+
+            my $str3 = POSIX::strftime::Compiler::_tzoffset(localtime(timelocal(0, 45, 12, $day, $month - 1, $year)));
+            is $str3, $tz[$i];
+            my $str4 = POSIX::strftime::Compiler::_tzname(localtime(timelocal(0, 45, 12, $day, $month - 1, $year)));
+            if ( ref $tz[$i+4] ) {
+                like $str4, $tz[$i+4], "$timezone / $year-$month-$day => $str4";
+            }
+            else {
+                is $str4, $tz[$i+4], "$timezone / $year-$month-$day => $str4";
+            }
+
             $i++;
         }
     };

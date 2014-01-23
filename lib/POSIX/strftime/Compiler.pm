@@ -39,103 +39,89 @@ BEGIN {
 
 # copy from POSIX/strftime/GNU/PP.pm and modify
 my @offset2zone = qw(
-    -11       0 SST     -11       0 SST
-    -10       0 HAST    -09       1 HADT
-    -10       0 HST     -10       0 HST
-    -09:30    0 MART    -09:30    0 MART
-    -09       0 AKST    -08       1 AKDT
-    -09       0 GAMT    -09       0 GAMT
-    -08       0 PST     -07       1 PDT
-    -08       0 PST     -08       0 PST
-    -07       0 MST     -06       1 MDT
-    -07       0 MST     -07       0 MST
-    -06       0 CST     -05       1 CDT
-    -06       0 GALT    -06       0 GALT
-    -05       0 ECT     -05       0 ECT
-    -05       0 EST     -04       1 EDT
-    -05       1 EASST   -06       0 EAST
-    -04:30    0 VET     -04:30    0 VET
-    -04       0 AMT     -04       0 AMT
-    -04       0 AST     -03       1 ADT
-    -03:30    0 NST     -02:30    1 NDT
-    -03       0 ART     -03       0 ART
-    -03       0 PMST    -02       1 PMDT
-    -03       1 AMST    -04       0 AMT
-    -03       1 WARST   -03       1 WARST
-    -02       0 FNT     -02       0 FNT
-    -02       1 UYST    -03       0 UYT
-    -01       0 AZOT    +00       1 AZOST
-    -01       0 CVT     -01       0 CVT
-    +00       0 GMT     +00       0 GMT
-    +00       0 WET     +01       1 WEST
-    +01       0 CET     +02       1 CEST
-    +01       0 WAT     +01       0 WAT
-    +02       0 EET     +02       0 EET
-    +02       0 IST     +03       1 IDT
-    +02       1 WAST    +01       0 WAT
-    +03       0 FET     +03       0 FET
-    +03:07:04 0 zzz     +03:07:04 0 zzz
-    +03:30    0 IRST    +04:30    1 IRDT
-    +04       0 AZT     +05       1 AZST
-    +04       0 GST     +04       0 GST
-    +04:30    0 AFT     +04:30    0 AFT
-    +05       0 DAVT    +07       0 DAVT
-    +05       0 MVT     +05       0 MVT
-    +05:30    0 IST     +05:30    0 IST
-    +05:45    0 NPT     +05:45    0 NPT
-    +06       0 BDT     +06       0 BDT
-    +06:30    0 CCT     +06:30    0 CCT
-    +07       0 ICT     +07       0 ICT
-    +08       0 HKT     +08       0 HKT
-    +08:45    0 CWST    +08:45    0 CWST
-    +09       0 JST     +09       0 JST
-    +09:30    0 CST     +09:30    0 CST
-    +10       0 PGT     +10       0 PGT
-    +10:30    1 CST     +09:30    0 CST
-    +11       0 CAST    +08       0 WST
-    +11       0 NCT     +11       0 NCT
-    +11       1 EST     +10       0 EST
-    +11       1 LHST    +10:30    0 LHST
-    +11:30    0 NFT     +11:30    0 NFT
-    +12       0 FJT     +12       0 FJT
-    +13       0 TKT     +13       0 TKT
-    +13       1 NZDT    +12       0 NZST
-    +13:45    1 CHADT   +12:45    0 CHAST
-    +14       0 LINT    +14       0 LINT
-    +14       1 WSDT    +13       0 WST
+    -1100       0 SST     -1100       0 SST
+    -1000       0 HAST    -0900       1 HADT
+    -1000       0 HST     -1000       0 HST
+    -0930       0 MART    -0930       0 MART
+    -0900       0 AKST    -0800       1 AKDT
+    -0900       0 GAMT    -0900       0 GAMT
+    -0800       0 PST     -0700       1 PDT
+    -0800       0 PST     -0800       0 PST
+    -0700       0 MST     -0600       1 MDT
+    -0700       0 MST     -0700       0 MST
+    -0600       0 CST     -0500       1 CDT
+    -0600       0 GALT    -0600       0 GALT
+    -0500       0 ECT     -0500       0 ECT
+    -0500       0 EST     -0400       1 EDT
+    -0500       1 EASST   -0600       0 EAST
+    -0430       0 VET     -0430       0 VET
+    -0400       0 AMT     -0400       0 AMT
+    -0400       0 AST     -0300       1 ADT
+    -0330       0 NST     -0230       1 NDT
+    -0300       0 ART     -0300       0 ART
+    -0300       0 PMST    -0200       1 PMDT
+    -0300       1 AMST    -0400       0 AMT
+    -0300       1 WARST   -0300       1 WARST
+    -0200       0 FNT     -0200       0 FNT
+    -0200       1 UYST    -0300       0 UYT
+    -0100       0 AZOT    +0000       1 AZOST
+    -0100       0 CVT     -0100       0 CVT
+    +0000       0 GMT     +0000       0 GMT
+    +0000       0 WET     +0100       1 WEST
+    +0100       0 CET     +0200       1 CEST
+    +0100       0 WAT     +0100       0 WAT
+    +0200       0 EET     +0200       0 EET
+    +0200       0 IST     +0300       1 IDT
+    +0200       1 WAST    +0100       0 WAT
+    +0300       0 FET     +0300       0 FET
+    +030704     0 zzz     +030704     0 zzz
+    +0330       0 IRST    +0430       1 IRDT
+    +0400       0 AZT     +0500       1 AZST
+    +0400       0 GST     +0400       0 GST
+    +0430       0 AFT     +0430       0 AFT
+    +0500       0 DAVT    +0700       0 DAVT
+    +0500       0 MVT     +0500       0 MVT
+    +0530       0 IST     +0530       0 IST
+    +0545       0 NPT     +0545       0 NPT
+    +0600       0 BDT     +0600       0 BDT
+    +0630       0 CCT     +0630       0 CCT
+    +0700       0 ICT     +0700       0 ICT
+    +0800       0 HKT     +0800       0 HKT
+    +0845       0 CWST    +0845       0 CWST
+    +0900       0 JST     +0900       0 JST
+    +0930       0 CST     +0930       0 CST
+    +1000       0 PGT     +1000       0 PGT
+    +1030       1 CST     +0930       0 CST
+    +1100       0 CAST    +0800       0 WST
+    +1100       0 NCT     +1100       0 NCT
+    +1100       1 EST     +1000       0 EST
+    +1100       1 LHST    +1030       0 LHST
+    +1130       0 NFT     +1130       0 NFT
+    +1200       0 FJT     +1200       0 FJT
+    +1300       0 TKT     +1300       0 TKT
+    +1300       1 NZDT    +1200       0 NZST
+    +1345       1 CHADT   +1245       0 CHAST
+    +1400       0 LINT    +1400       0 LINT
+    +1400       1 WSDT    +1300       0 WST
 );
 
 sub _tzoffset {
-    my @t = @_;
-
-    # Normalize @t array, we need seconds without frac
-    $t[SEC] = int $t[SEC];
-
-    my $diff = (exists $ENV{TZ} and $ENV{TZ} eq 'GMT')
+    my $diff = (exists $ENV{TZ} and $ENV{TZ} =~ m!^(?:GMT|UTC)$!)
              ? 0
-             : Time::Local::timegm(@t) - Time::Local::timelocal(@t);
+             : Time::Local::timegm(@_) - Time::Local::timelocal(@_);
     sprintf '%+03d%02u', $diff/60/60, $diff/60%60;
 }
 
 sub _tzname {
-    my @t = @_;
+    return $ENV{TZ} if exists $ENV{TZ} and $ENV{TZ} =~ m!^(?:GMT|UTC)$!;
 
-    return 'GMT' if exists $ENV{TZ} and $ENV{TZ} eq 'GMT';
+    my $diff = tzoffset(@_);
 
-    my $diff = tzoffset(@t);
-    $diff =~ s!(\d\d)(\d\d)$!$1:$2!;
-    $diff =~ s!:00!!g;
-
-    my @t1 = my @t2 = @t;
+    my @t1 = my @t2 = @_;
     @t1[3,4] = (1, 1);  # winter
-    @t2[3,4] = (1, 7);  # summer
-
     my $diff1 = tzoffset(@t1);
-    $diff1 =~ s!(\d\d)(\d\d)$!$1:$2!;
-    $diff1 =~ s!:00!!g;
+    @t2[3,4] = (1, 7);  # summer
     my $diff2 = tzoffset(@t2);
-    $diff2 =~ s!(\d\d)(\d\d)$!$1:$2!;
-    $diff2 =~ s!:00!!g;
 
     for (my $i=0; $i < @offset2zone; $i += 6) {
         next unless $offset2zone[$i] eq $diff1 and $offset2zone[$i+3] eq $diff2;
@@ -166,9 +152,6 @@ sub isleap {
 
 sub isodaysnum {
     my @t = @_;
-
-    # Normalize @t array
-    $t[SEC] = int $t[SEC];
 
     my $year = ($t[YEAR] + ($t[YEAR] < 0 ? 1900 % 400 : 1900 % 400 - 400));
     my $year_adjust = 0;
@@ -261,6 +244,7 @@ our %rules = (
     'x' => [q!'%m/%d/%y'!],
     'X' => [q!'%H:%M:%S'!],
     'z' => [q!'%z'!,1],
+    'Z' => [q!'%Z'!,1],
 );
 
 if ( $^O eq 'MSWin32' || $^O eq 'Cygwin' ) {
@@ -276,7 +260,7 @@ if ( $^O eq 'MSWin32' || $^O eq 'Cygwin' ) {
         'g' => [q!substr('0'.isoyearnum(@_)%100,-2)!,1],
         'k' => [q!substr(' '.$_[HOUR],-2)!],
         'l' => [q!substr(' '.($_[HOUR]%12 || 1),-2)!],
-        's' => [q!Time::Local::timegm(int($_[0]),@_[1..($#_)])!,1],
+        's' => [q!int Time::Local::timegm(@_)!,1],
         'u' => [q!$_[WDAY] || 7!,1],
         'z' => [q!tzoffset(@_)!,1],
         'Z' => [q!tzname(@_)!,1],
@@ -345,7 +329,7 @@ sub compile {
     if ( $need9char ) {
         $need9char_code = q~if ( @_ == 6 ) {
           my $sec = $_[0];
-          @_ = gmtime Time::Local::timegm(int($sec),@_[1..5]);
+          @_ = gmtime Time::Local::timegm(@_);
           $_[0] = $sec;
         }~;
     }
@@ -356,18 +340,17 @@ sub compile {
         }
         ~ . $sprintf_code . q~
         ~ . $need9char_code . q~
-        POSIX::strftime(q!~ . $posix_fmt . q~!,int($_[0]),@_[1..($#_)]);
+        POSIX::strftime(q!~ . $posix_fmt . q~!,int($_[0]),@_[1..$#_]);
     }~;
     my $sub = eval $code; ## no critic
-    die $@ ."\n===\n".$code if $@;
+    die $@ ."\n=====\n".$code."\n=====\n" if $@;
     wantarray ? ($sub,$code) : $sub;
 }
 
 my %STRFTIME;
 sub strftime {
     my $fmt = shift;
-    $STRFTIME{$fmt} ||= compile($fmt);
-    $STRFTIME{$fmt}->(@_);
+    ($STRFTIME{$fmt} ||= compile($fmt))->(@_);
 }
 
 sub new {
@@ -454,7 +437,7 @@ But C<%E[cCxXyY]> and C<%O[deHImMSuUVwWy]> are not supported, just remove E and 
 =item L<Time::TZOffset>
 
 If L<Time::TZOffset> is available, P::s::Compiler use it for more faster time zone offset calculation.
-I strongly recommend you to install this.
+I strongly recommend you to install this if you use C<%z>.
 
 =back
 
