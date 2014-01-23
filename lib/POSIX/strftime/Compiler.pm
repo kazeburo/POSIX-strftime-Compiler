@@ -227,7 +227,7 @@ if ( eval { require Time::TZOffset; 1 } ) {
 }
 
 our %rules = (
-    '%' => [q!'%'!],
+    '%' => [q!'%%'!],
     'a' => [q!$weekday_abbr[$_[WDAY]]!,1],
     'A' => [q!$weekday_name[$_[WDAY]]!,1],
     'b' => [q!$month_abbr[$_[MONTH]]!],
