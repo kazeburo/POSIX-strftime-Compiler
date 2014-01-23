@@ -263,7 +263,7 @@ if ( $^O eq 'MSWin32' || $^O eq 'Cygwin' ) {
         'g' => [q!substr('0'.isoyearnum(@_)%100,-2)!,1],
         'k' => [q!substr(' '.$_[HOUR],-2)!],
         'l' => [q!substr(' '.($_[HOUR]%12 || 1),-2)!],
-        's' => [q!int Time::Local::timegm(@_)!,1],
+        's' => [q!int(Time::Local::timegm(@_))!,1],
         'u' => [q!$_[WDAY] || 7!,1],
         'z' => [q!tzoffset(@_)!,1],
         'Z' => [q!tzname(@_)!,1],
