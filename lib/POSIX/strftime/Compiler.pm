@@ -184,13 +184,16 @@ sub isoweeknum {
     return int($days / 7) + 1;
 }
 
-our %sprintf_rules = (
+our %FORMAT_CHARS = map { $_ => 1 } split //, q!%aAbBcCdDeFGghHIjklmMnNpPrRsStTuUVwWxXyYzZ!;
+
+our %SPRINTF_CHARS = (
     '%' => [q!%s!, q!%!],
     'a' => [q!%s!, q!$weekday_abbr[$_[WDAY]]!],
     'A' => [q!%s!, q!$weekday_name[$_[WDAY]]!],
     'b' => [q!%s!, q!$month_abbr[$_[MONTH]]!],
     'B' => [q!%s!, q!$month_name[$_[MONTH]]!],
-    'c' => [q!%s %s %2d %02d:%02d:%02d %04d!, q!$weekday_abbr[$_[WDAY]], $month_abbr[$_[MONTH]], $_[DAY], $_[HOUR], $_[MIN], $_[SEC], $_[YEAR]+1900!],
+    'c' => [q!%s %s %2d %02d:%02d:%02d %04d!,
+            q!$weekday_abbr[$_[WDAY]], $month_abbr[$_[MONTH]], $_[DAY], $_[HOUR], $_[MIN], $_[SEC], $_[YEAR]+1900!],
     'C' => [q!%02d!, q!($_[YEAR]+1900)/100!],
     'd' => [q!%02d!, q!$_[DAY]!],
     'D' => [q!%02d/%02d/%02d!, q!$_[MONTH]+1,$_[DAY],$_[YEAR]%100!],
@@ -223,10 +226,10 @@ our %sprintf_rules = (
 );
 
 if ( eval { require Time::TZOffset; 1 } ) {
-    $sprintf_rules{z} = [q!%s!,q!Time::TZOffset::tzoffset(@_)!];
+    $SPRINTF_CHARS{z} = [q!%s!,q!Time::TZOffset::tzoffset(@_)!];
 }
 
-our %rules = (
+our %LOCALE_CHARS = (
     '%' => [q!'%%'!],
     'a' => [q!$weekday_abbr[$_[WDAY]]!,1],
     'A' => [q!$weekday_name[$_[WDAY]]!,1],
@@ -248,8 +251,8 @@ our %rules = (
 );
 
 if ( $^O eq 'MSWin32' || $^O eq 'Cygwin' ) {
-    %rules = (
-        %rules,
+    %LOCALE_CHARS = (
+        %LOCALE_CHARS,
         'D' => [q!'%m/%d/%y'!],
         'F' => [q!'%Y-%m-%d'!],
         'G' => [q!substr('0000'. isoyearnum(@_), -4)!,1],
@@ -269,16 +272,19 @@ if ( $^O eq 'MSWin32' || $^O eq 'Cygwin' ) {
 
 my $sprintf_char_handler = sub {
     my ($char,$args) = @_;
-    die unless exists $sprintf_rules{$char};
-    my ($format, $code) = @{$sprintf_rules{$char}};
+    return q|! . '%%' .q!| if $char eq ''; #last %
+    return q|! . '%%| . $char . q|' . q!| if ! exists $FORMAT_CHARS{$char}; #escape %%
+    my ($format, $code) = @{$SPRINTF_CHARS{$char}};
     push @$args, $code;
     return $format;
 };
 
 my $char_handler = sub {
     my ($char,$need9char_ref) = @_;
-    die unless exists $rules{$char};
-    my ($code,$flag) = @{$rules{$char}};
+    return q|! . '%%' .q!| if $char eq ''; #last %
+    return q|! . '%%| . $char . q|' . q!| if ! exists $FORMAT_CHARS{$char}; #escape %%
+    return q|! . '%| . $char . q|' . q!| if ! exists $LOCALE_CHARS{$char}; #stay
+    my ($code,$flag) = @{$LOCALE_CHARS{$char}};
     $$need9char_ref++ if $flag;
     q|! . | . $code . q| . q!|;
 };
@@ -299,16 +305,15 @@ sub compile {
     my $disable_sprintf=0;
     my $sprintf_code = '';
     while ( $sprintf_fmt =~ m~ (?:\%([\%\+a-zA-Z])) ~gx ) {
-        if ( ! exists $sprintf_rules{$1} ) {
+        if ( exists $FORMAT_CHARS{$1} && ! exists $SPRINTF_CHARS{$1} ) {
             $disable_sprintf++
         }
     }
     if ( !$disable_sprintf ) {
-        my $rule_chars = join "", keys %sprintf_rules;
         my @args;
         $sprintf_fmt =~ s!
             (?:
-                 \%([$rule_chars])
+                 \%([\%\+a-zA-Z]|$)
             )
         ! $sprintf_char_handler->($1,\@args) !egx;
         $sprintf_code = q~if ( @_ == 9 ) {
@@ -317,11 +322,10 @@ sub compile {
     }
 
     my $posix_fmt = $fmt;
-    my $rule_chars = join "", keys %rules;
     my $need9char=0;
     $posix_fmt =~ s!
         (?:
-             \%([$rule_chars])
+             \%([\%\+a-zA-Z]|$)
         )
     ! $char_handler->($1,\$need9char) !egx;
     
@@ -333,7 +337,6 @@ sub compile {
           $_[0] = $sec;
         }~;
     }
-
     my $code = q~sub {
         if ( @_ != 9  && @_ != 6 ) {
             Carp::croak 'Usage: strftime(sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)';
