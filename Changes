@@ -2,6 +2,12 @@ Revision history for Perl extension POSIX-strftime-Compiler
 
 {{$NEXT}}
 
+0.11 2014-01-23T06:18:58Z
+
+    - Escape unkown characters with '%%'
+    - fix '%' escaping
+    - maybe test fixed on netbsd. six arguments required for '%Z'?
+
 0.10 2014-01-21T01:41:51Z
 
     - release as non-trial version
