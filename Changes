@@ -2,6 +2,10 @@ Revision history for Perl extension POSIX-strftime-Compiler
 
 {{$NEXT}}
 
+0.13 2014-01-24T01:12:31Z
+
+    - bugfix on cygwin. osname is cygwin. not Cygwin.
+
 0.12 2014-01-23T08:21:39Z
 
     - fix bug around %s on windows. require "(" ")"
