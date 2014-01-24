@@ -7,8 +7,7 @@ use POSIX::strftime::Compiler qw/strftime/;
 
 eval {
     POSIX::tzset;
-    die q!tzset is implemented on this Cygwin. But Windows can't change tz inside script! if $^O eq 'cygwin';
-    die q!tzset is implemented on this Windows. But Windows can't change tz inside script! if $^O eq 'MSWin32';
+    die q!tzset is implemented on this ! . $^O  .q!. But Windows can't change tz inside script! if $^O =~ m/^(MSWin32|cygwin)$/i;
 };
 if ( $@ ) {
     plan skip_all => $@;

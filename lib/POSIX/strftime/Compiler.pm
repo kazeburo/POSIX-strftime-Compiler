@@ -250,7 +250,7 @@ our %LOCALE_CHARS = (
     'Z' => [q!'%Z'!,1],
 );
 
-if ( $^O eq 'MSWin32' || $^O eq 'Cygwin' ) {
+if ( $^O =~ m!^(MSWin32|cygwin)$!i ) {
     %LOCALE_CHARS = (
         %LOCALE_CHARS,
         'D' => [q!'%m/%d/%y'!],
