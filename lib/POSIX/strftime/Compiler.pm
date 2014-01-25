@@ -343,7 +343,7 @@ sub compile {
         }
         ~ . $sprintf_code . q~
         ~ . $need9char_code . q~
-        POSIX::strftime(q!~ . $posix_fmt . q~!,int($_[0]),@_[1..$#_]);
+        POSIX::strftime(q!~ . $posix_fmt . q~!,@_);
     }~;
     my $sub = eval $code; ## no critic
     die $@ ."\n=====\n".$code."\n=====\n" if $@;
