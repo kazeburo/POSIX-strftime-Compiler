@@ -2,6 +2,10 @@ Revision history for Perl extension POSIX-strftime-Compiler
 
 {{$NEXT}}
 
+0.30 2014-01-25T16:46:06Z
+
+    - not require int(sec), improve performance
+
 0.13 2014-01-24T01:12:31Z
 
     - bugfix on cygwin. osname is cygwin. not Cygwin.
