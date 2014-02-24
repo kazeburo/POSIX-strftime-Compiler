@@ -2,6 +2,10 @@ Revision history for Perl extension POSIX-strftime-Compiler
 
 {{$NEXT}}
 
+0.31 2014-02-24T06:27:11Z
+
+    - bugfix on solaris. Solaris does not have %s.
+
 0.30 2014-01-25T16:46:06Z
 
     - not require int(sec), improve performance
