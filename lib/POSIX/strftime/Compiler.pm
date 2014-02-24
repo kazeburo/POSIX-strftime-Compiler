@@ -269,6 +269,9 @@ if ( $^O =~ m!^(MSWin32|cygwin)$!i ) {
         'Z' => [q!tzname(@_)!,1],
     );
 }
+elsif ( $^O =~ m!^solaris$!i ) {
+    $LOCALE_CHARS{s} = [q!int(Time::Local::timegm(@_))!,1];
+}
 
 my $sprintf_char_handler = sub {
     my ($char,$args) = @_;
