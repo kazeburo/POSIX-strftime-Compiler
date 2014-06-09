@@ -2,6 +2,10 @@ Revision history for Perl extension POSIX-strftime-Compiler
 
 {{$NEXT}}
 
+0.32 2014-06-09T01:53:19Z
+
+    - change perl version requirements to 5.8.1
+
 0.31 2014-02-24T06:27:11Z
 
     - bugfix on solaris. Solaris does not have %s.
