@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/kazeburo/POSIX-strftime-Compiler.png?branch=master)](https://travis-ci.org/kazeburo/POSIX-strftime-Compiler)
 # NAME
 
 POSIX::strftime::Compiler - GNU C library compatible strftime for loggers and servers
@@ -8,7 +9,6 @@ POSIX::strftime::Compiler - GNU C library compatible strftime for loggers and se
 
     say strftime('%a, %d %b %Y %T %z',localtime):
     
-
     my $psc = POSIX::strftime::Compiler->new($fmt);
     say $psc->to_string(localtime);
 
@@ -48,25 +48,25 @@ But `%E[cCxXyY]` and `%O[deHImMSuUVwWy]` are not supported, just remove E and O 
 
 # A RECOMMEND MODULE
 
-- [Time::TZOffset](http://search.cpan.org/perldoc?Time::TZOffset)
+- [Time::TZOffset](https://metacpan.org/pod/Time::TZOffset)
 
-    If [Time::TZOffset](http://search.cpan.org/perldoc?Time::TZOffset) is available, P::s::Compiler use it for more faster time zone offset calculation.
+    If [Time::TZOffset](https://metacpan.org/pod/Time::TZOffset) is available, P::s::Compiler use it for more faster time zone offset calculation.
     I strongly recommend you to install this if you use `%z`.
 
 # PERFORMANCE ISSUES ON WINDOWS
 
 Windows and Cygwin and some system may not support `%z` and `%Z`. For these system, 
 POSIX::strftime::Compiler calculate time zone offset and find zone name. This is not fast.
-If you need performance on Windows and Cygwin, please install [Time::TZOffset](http://search.cpan.org/perldoc?Time::TZOffset)
+If you need performance on Windows and Cygwin, please install [Time::TZOffset](https://metacpan.org/pod/Time::TZOffset)
 
 # SEE ALSO
 
-- [POSIX::strftime::GNU](http://search.cpan.org/perldoc?POSIX::strftime::GNU)
+- [POSIX::strftime::GNU](https://metacpan.org/pod/POSIX::strftime::GNU)
 
     POSIX::strftime::Compiler is built on POSIX::strftime::GNU::PP code
 
-- [POSIX](http://search.cpan.org/perldoc?POSIX)
-- [Apache::LogFormat::Compiler](http://search.cpan.org/perldoc?Apache::LogFormat::Compiler)
+- [POSIX](https://metacpan.org/pod/POSIX)
+- [Apache::LogFormat::Compiler](https://metacpan.org/pod/Apache::LogFormat::Compiler)
 
 # LICENSE
 
