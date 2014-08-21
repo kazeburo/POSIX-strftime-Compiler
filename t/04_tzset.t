@@ -14,7 +14,7 @@ if ( $@ ) {
 }
 
 my @timezones = ( 
-    ['Australia/Darwin','+0930','+0930','+0930','+0930','CST','CST','CST','CST' ],
+    ['Australia/Darwin','+0930','+0930','+0930','+0930',qr/A?CST/,qr/A?CST/,qr/A?CST/,qr/A?CST/ ],
     ['Asia/Tokyo', '+0900','+0900','+0900','+0900', 'JST','JST','JST','JST'],
     ['UTC', '+0000','+0000','+0000','+0000','UTC','UTC','UTC','UTC'],
     ['Europe/London', '+0000','+0100','+0100','+0000',qr/(GMT|WET)/,qr/(BST|WEST)/,qr/(BST|WEST)/,qr/(GMT|WET|)/],
