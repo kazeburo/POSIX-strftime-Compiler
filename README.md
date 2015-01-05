@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/kazeburo/POSIX-strftime-Compiler.png?branch=master)](https://travis-ci.org/kazeburo/POSIX-strftime-Compiler)
+[![Build Status](https://travis-ci.org/kazeburo/POSIX-strftime-Compiler.svg?branch=master)](https://travis-ci.org/kazeburo/POSIX-strftime-Compiler)
 # NAME
 
 POSIX::strftime::Compiler - GNU C library compatible strftime for loggers and servers
@@ -9,6 +9,7 @@ POSIX::strftime::Compiler - GNU C library compatible strftime for loggers and se
 
     say strftime('%a, %d %b %Y %T %z',localtime):
     
+    my $fmt = '%a, %d %b %Y %T %z';
     my $psc = POSIX::strftime::Compiler->new($fmt);
     say $psc->to_string(localtime);
 
