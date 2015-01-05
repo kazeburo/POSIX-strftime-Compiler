@@ -70,7 +70,7 @@
          "web" : "https://github.com/kazeburo/POSIX-strftime-Compiler"
       }
    },
-   "version" : "0.40",
+   "version" : "0.41",
    "x_contributors" : [
       "Piotr Roszatycki <piotr.roszatycki@gmail.com>"
    ]

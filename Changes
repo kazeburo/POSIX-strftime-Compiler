@@ -2,6 +2,10 @@ Revision history for Perl extension POSIX-strftime-Compiler
 
 {{$NEXT}}
 
+0.41 2015-01-05T03:25:28Z
+
+   - fixed synopsis
+
 0.40 2014-08-21T01:25:32Z
 
    - fix test. accept ACST as Australia/Darwin's timezone
