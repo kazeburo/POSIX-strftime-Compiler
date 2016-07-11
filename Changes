@@ -2,6 +2,10 @@ Revision history for Perl extension POSIX-strftime-Compiler
 
 {{$NEXT}}
 
+0.42 2016-07-11T10:04:37Z
+
+   - import musl patch
+
 0.41 2015-01-05T03:25:28Z
 
    - fixed synopsis
