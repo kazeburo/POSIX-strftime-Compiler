@@ -17,8 +17,10 @@ if ( $@ ) {
     plan skip_all => $@;
 }
 
+
+my $zone = $ENV{TZ};
 eval {
-    local $ENV{TZ} = 'Australia/Darwin';
+    $ENV{TZ} = 'Australia/Darwin';
     if (`"$^X" $inc $dir/02_timezone.pl %z 0 0 0 1 9 113` !~ m!^\+0930!) {
         die "tzdada is not correct";
     }
@@ -26,6 +28,7 @@ eval {
 if ( $@ ) {
     plan skip_all => $@;
 }
+$ENV{TZ} = $zone;
 
 my @timezones = ( 
     ['Australia/Darwin','+0930','+0930','+0930','+0930',qr/A?CST/,qr/A?CST/,qr/A?CST/,qr/A?CST/ ],

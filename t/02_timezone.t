@@ -8,8 +8,9 @@ use File::Basename;
 my $inc = join ' ', map { "-I\"$_\"" } @INC;
 my $dir = dirname(__FILE__);
 
+my $zone = $ENV{TZ};
 eval {
-    local $ENV{TZ} = 'Australia/Darwin';
+    $ENV{TZ} = 'Australia/Darwin';
     if (`"$^X" $inc $dir/02_timezone.pl %z 0 0 0 1 9 113` !~ m!^\+0930!) {
         die "tzdada is not correct";
     }
@@ -17,10 +18,11 @@ eval {
 if ( $@ ) {
     plan skip_all => $@;
 }
+$ENV{TZ} = $zone;
 
 my $found;
 for my $tz (qw( Europe/Paris CET-1CEST )) {
-    local $ENV{TZ} = $tz;
+    $ENV{TZ} = $tz;
     if (`"$^X" $inc $dir/02_timezone.pl %z 0 0 0 1 1 112` =~ /^\+0[12]00$/) {
         $found = $tz;
         last;
