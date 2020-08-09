@@ -18,7 +18,7 @@ if ( $@ ) {
 }
 
 eval {
-    local $ENV{TZ} = 'Australia/Darwin';
+    local $ENV{TEST_TZ} = 'Australia/Darwin';
     my $d = `"$^X" $inc $dir/02_timezone.pl %z 0 0 0 10 0 113`;
     if ($d !~ m!^\+0930!) {
         die "tzdada is not enough: $d";
