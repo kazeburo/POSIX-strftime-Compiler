@@ -17,12 +17,12 @@ if ( $@ ) {
     plan skip_all => $@;
 }
 
-
 my $zone = $ENV{TZ};
 eval {
     $ENV{TZ} = 'Australia/Darwin';
-    if (`"$^X" $inc $dir/02_timezone.pl %z 0 0 0 1 9 113` !~ m!^\+0930!) {
-        die "tzdada is not correct";
+    my $d = `"$^X" $inc $dir/02_timezone.pl %z 0 0 0 10 0 113`;
+    if ($d !~ m!^\+0930!) {
+        die "tzdada is not enough: $d";
     }
 };
 if ( $@ ) {
