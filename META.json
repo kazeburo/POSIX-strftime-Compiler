@@ -4,7 +4,7 @@
       "Masahiro Nagano <kazeburo@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v3.1.10, CPAN::Meta::Converter version 2.150010",
+   "generated_by" : "Minilla/v3.1.23, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "perl_5"
    ],
@@ -66,16 +66,17 @@
       "homepage" : "https://github.com/kazeburo/POSIX-strftime-Compiler",
       "repository" : {
          "type" : "git",
-         "url" : "git://github.com/kazeburo/POSIX-strftime-Compiler.git",
+         "url" : "https://github.com/kazeburo/POSIX-strftime-Compiler.git",
          "web" : "https://github.com/kazeburo/POSIX-strftime-Compiler"
       }
    },
    "version" : "0.44",
    "x_contributors" : [
+      "Aristotle Pagaltzis <pagaltzis@gmx.de>",
       "Piotr Roszatycki <piotr.roszatycki@gmail.com>",
       "Slaven Rezic <slaven.rezic@idealo.de>",
       "Tom Bloor <tbsliver@shadow.cat>"
    ],
-   "x_serialization_backend" : "JSON::PP version 4.04",
+   "x_serialization_backend" : "JSON::PP version 4.07",
    "x_static_install" : 1
 }
