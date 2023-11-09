@@ -2,6 +2,10 @@ Revision history for Perl extension POSIX-strftime-Compiler
 
 {{$NEXT}}
 
+0.45 2023-11-09T09:54:10Z
+
+   - fix indirect object notation for exec #11
+
 0.44 2020-08-10T07:10:35Z
 
    - Check tzdata before test
